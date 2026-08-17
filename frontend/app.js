@@ -506,87 +506,6 @@ function extractDocumentMetadata(text) {
     }
   }
 
-  // 6. DATE EXTRACTION (Restricted to 2017 to 2030)
-  let extractedDate = "";
-  const dateMatch = text.match(/\b(201[7-9]|202[0-9]|2030)[/-](0[1-9]|1[0-2])[/-](0[1-9]|[12][0-9]|3[01])\b/) ||
-                    text.match(/\b(0[1-9]|[12][0-9]|3[01])[/-](0[1-9]|1[0-2])[/-](201[7-9]|202[0-9]|2030)\b/);
-  if (dateMatch) {
-    extractedDate = dateMatch[0];
-  } else {
-    const d = new Date();
-    extractedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
-  function getSavedBaseDir() {
-  return localStorage.getItem("operator_base_dir") || "D:\\Scan";
-}
-
-function saveBaseDir(val) {
-  if (val && val.trim()) {
-    localStorage.setItem("operator_base_dir", val.trim());
-  }
-}
-
-function extractPdfMetadataAndAutoFill(text) {
-  // 1. CATEGORY DETECTION
-  let detectedCategory = "Employee";
-  const lowerText = text.toLowerCase();
-  
-  if (lowerText.includes("pension") || lowerText.includes("retired") || lowerText.includes("ppo") || lowerText.includes("superannuation")) {
-    detectedCategory = "Retired";
-  } else if (lowerText.includes("family") || lowerText.includes("dependent") || lowerText.includes("spouse") || lowerText.includes("nominee")) {
-    detectedCategory = "Family";
-  } else if (lowerText.includes("employee") || lowerText.includes("designation") || lowerText.includes("department") || lowerText.includes("salary")) {
-    detectedCategory = "Employee";
-  }
-
-  // 2. NAME EXTRACTION
-  let extractedName = "";
-  const namePatterns = [
-    /(?:name\s*:\s*|name\s+of\s+employee\s*:\s*|employee\s+name\s*:\s*)([A-Z\s]{3,30})/i,
-    /(?:mr\.|mrs\.|ms\.|dr\.)\s+([A-Z\s]{3,25})/i,
-    /([A-Z][a-z]+\s+[A-Z][a-z]+)/
-  ];
-
-  for (const pat of namePatterns) {
-    const m = text.match(pat);
-    if (m && m[1] && m[1].trim().length > 2) {
-      extractedName = m[1].trim();
-      break;
-    }
-  }
-
-  // 3. GENDER EXTRACTION
-  let extractedGender = "Male";
-  if (/\b(female|woman|she|her|mrs\.|ms\.)\b/i.test(text)) {
-    extractedGender = "Female";
-  } else if (/\b(other|transgender)\b/i.test(text)) {
-    extractedGender = "Other";
-  }
-
-  // 4. AGE EXTRACTION
-  let extractedAge = "29";
-  const ageMatch = text.match(/\b(?:age|years?|yrs?)\s*:\s*(\d{1,3})\b/i) || text.match(/\b(\d{2})\s*(?:years|yrs)\b/i);
-  if (ageMatch) {
-    extractedAge = ageMatch[1];
-  }
-
-  // 5. ID / REF NUMBER EXTRACTION
-  let extractedId = "";
-  const idPatterns = [
-    /(?:emp\s*id|employee\s*code|ppo\s*no|ref\s*no|ref\s*id)\s*:\s*([A-Z0-9\-_]{3,20})/i,
-    /\b(EMP-\d{4,8}|PPO-\d{4,8}|\d{6,10})\b/i
-  ];
-
-  for (const pat of idPatterns) {
-    const m = text.match(pat);
-    if (m && m[1] && m[1].trim().length >= 3) {
-      extractedId = m[1].trim();
-      break;
-    }
-  }
-
-  // 6. DATE EXTRACTION (Restricted to 2017 to 2030)
   let extractedDate = "";
   const dateMatch = text.match(/\b(201[7-9]|202[0-9]|2030)[/-](0[1-9]|1[0-2])[/-](0[1-9]|[12][0-9]|3[01])\b/) ||
                     text.match(/\b(0[1-9]|[12][0-9]|3[01])[/-](0[1-9]|1[0-2])[/-](201[7-9]|202[0-9]|2030)\b/);
@@ -608,6 +527,16 @@ function extractPdfMetadataAndAutoFill(text) {
   };
 
   updateSmartRenameUI();
+}
+
+function getSavedBaseDir() {
+  return localStorage.getItem("operator_base_dir") || "D:\\Scan";
+}
+
+function saveBaseDir(val) {
+  if (val && val.trim()) {
+    localStorage.setItem("operator_base_dir", val.trim());
+  }
 }
 
 function updateSmartRenameUI() {
