@@ -4,6 +4,9 @@
 *.py
 requirements.txt
 server.js
+package.json
+package-lock.json
+node_modules/
 PDF_CleanSpace_Desktop_Package.zip
 Create_Desktop_Shortcut.bat
 Launch_PDF_CleanSpace.bat

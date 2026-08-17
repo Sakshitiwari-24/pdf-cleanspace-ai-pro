@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pdf-cleanspace-v18-schema-base-persistence';
+const CACHE_NAME = 'pdf-cleanspace-v19-prominent-blank-highlights';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
