@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pdf-cleanspace-v20-ultra-4k-crisp-reader';
+const CACHE_NAME = 'pdf-cleanspace-v21-unobscured-bottom-pages';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

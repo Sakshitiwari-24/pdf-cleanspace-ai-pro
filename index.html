@@ -55,7 +55,7 @@
       <div class="brand-title">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <h1>PDF CleanSpace Pro</h1>
-          <span style="background: #10b981; color: #ffffff; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; text-transform: uppercase;">v20.0 Latest</span>
+          <span style="background: #10b981; color: #ffffff; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; text-transform: uppercase;">v21.0 Latest</span>
         </div>
         <p>Smart Blank Removal, Manual Re-Check & Folder Path Studio</p>
       </div>
@@ -531,8 +531,16 @@
       <button class="btn btn-secondary" onclick="exportCleanedPdf('manual')" style="font-size: 0.85rem; font-weight: 700;">
         📂 Manual Save
       </button>
+      <button class="btn btn-secondary" onclick="toggleBottomActionBar(false)" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; border-color: #cbd5e1; color: #64748b;" title="Hide bar to view bottom pages cleanly">
+        🔻 Hide Bar
+      </button>
     </div>
   </div>
+
+  <!-- RESTORE BOTTOM BAR PILL BUTTON -->
+  <button id="bottom-bar-restore-pill" class="bottom-bar-toggle-pill" onclick="toggleBottomActionBar(true)" title="Show Save Action Bar">
+    ⚡ Save Action Bar ▲
+  </button>
 
   <!-- COMPACT FORMAL SMART RENAME MODAL -->
   <div id="smart-rename-modal" class="modal-backdrop">

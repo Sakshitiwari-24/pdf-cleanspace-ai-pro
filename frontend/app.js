@@ -884,13 +884,32 @@ function updateSummaryStats() {
   // Floating Bottom Bar
   const bottomBar = document.getElementById("bottom-action-bar");
   const bottomText = document.getElementById("bottom-summary-text");
+  const restorePill = document.getElementById("bottom-bar-restore-pill");
 
   if (bottomBar) {
     if (pagesData.length > 0) {
-      bottomBar.style.display = "flex";
+      if (!bottomBar.classList.contains("collapsed")) {
+        bottomBar.style.display = "flex";
+      }
       if (bottomText) bottomText.innerText = `${currentFilename} • ${cleanOutput} Clean Pages (${autoRemovedBlank} Blank Removed)`;
     } else {
       bottomBar.style.display = "none";
+      if (restorePill) restorePill.style.display = "none";
+    }
+  }
+}
+
+function toggleBottomActionBar(show) {
+  const bar = document.getElementById("bottom-action-bar");
+  const pill = document.getElementById("bottom-bar-restore-pill");
+  if (bar) {
+    if (show) {
+      bar.classList.remove("collapsed");
+      bar.style.display = "flex";
+      if (pill) pill.style.display = "none";
+    } else {
+      bar.classList.add("collapsed");
+      if (pill) pill.style.display = "flex";
     }
   }
 }
