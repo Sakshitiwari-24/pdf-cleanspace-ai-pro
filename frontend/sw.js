@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pdf-cleanspace-v21-unobscured-bottom-pages';
+const CACHE_NAME = 'pdf-cleanspace-v22-date-subfolder-path';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

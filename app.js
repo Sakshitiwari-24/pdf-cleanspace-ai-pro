@@ -697,7 +697,8 @@ function generateTargetPathAndFilename() {
   const currentSavedBase = getSavedBaseDir();
   const baseDir = (extractedMetadata.baseDir || currentSavedBase).replace(/\\$/, '');
 
-  const subfolderPath = `\\${rawCat}\\${yearStr}\\${monthNameStr}\\`;
+  // Dynamic hierarchy path: \{Category}\{Year}\{Month}\{Date}\
+  const subfolderPath = `\\${rawCat}\\${yearStr}\\${monthNameStr}\\${formattedDate}\\`;
   const fullPath = `${baseDir}${subfolderPath}${filename}`;
 
   const subfolderBadge = document.getElementById("rename-subfolder-badge");
