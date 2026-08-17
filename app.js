@@ -1072,6 +1072,11 @@ function adjustModalZoom(delta) {
   applyModalZoom();
 }
 
+function setModalZoomPreset(scale) {
+  modalZoomScale = scale;
+  applyModalZoom();
+}
+
 function resetModalZoom() {
   modalZoomScale = 1.0;
   applyModalZoom();
@@ -1082,7 +1087,7 @@ function applyModalZoom() {
   const badge = document.getElementById("modal-zoom-level");
   if (canvas) {
     canvas.style.transform = `scale(${modalZoomScale})`;
-    canvas.style.transformOrigin = "center center";
+    canvas.style.transformOrigin = "top center";
   }
   if (badge) {
     badge.innerText = `${Math.round(modalZoomScale * 100)}%`;
@@ -1165,7 +1170,7 @@ function openInstallModal() {
   openModal("install-modal");
 }
 
-// WIDESCREEN FULLPAGE ZOOM READER MODAL
+// WIDESCREEN FULLPAGE ZOOM READER MODAL (Ultra-HD 4K Vector Resolution Render Scale 4.0)
 async function openPageZoomModal() {
   const p = pagesData[currentInspectIndex];
   if (!p) return;
@@ -1177,15 +1182,16 @@ async function openPageZoomModal() {
   const canvas = document.getElementById("zoom-modal-canvas");
   if (!canvas) return;
 
-  // Try rendering high-res direct PDF page using PDF.js if available
+  // Render high-res direct PDF page using PDF.js at 4.0 Ultra-HD 4K Scale
   if (rawFileUint8Array && window.pdfjsLib) {
     try {
-      showLoading("Rendering high-res page reader...");
+      showLoading("Rendering 4K Ultra-HD Crisp Page Reader...");
       const loadingTask = pdfjsLib.getDocument({ data: rawFileUint8Array.slice() });
       const pdfDoc = await loadingTask.promise;
       const pdfPage = await pdfDoc.getPage(p.page_num);
       
-      const viewport = pdfPage.getViewport({ scale: 2.0, rotation: p.user_rotation });
+      // Render scale 4.0 for razor-sharp vector clarity on laptops & small screens
+      const viewport = pdfPage.getViewport({ scale: 4.0, rotation: p.user_rotation });
       const ctx = canvas.getContext("2d");
       canvas.width = viewport.width;
       canvas.height = viewport.height;
@@ -1205,14 +1211,14 @@ async function openPageZoomModal() {
   const ctx = canvas.getContext("2d");
   const img = new Image();
   img.onload = () => {
-    canvas.width = img.width * 2;
-    canvas.height = img.height * 2;
+    canvas.width = img.width * 3;
+    canvas.height = img.height * 3;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     ctx.save();
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.rotate((p.user_rotation * Math.PI) / 180);
-    ctx.drawImage(img, -img.width, -img.height, img.width * 2, img.height * 2);
+    ctx.drawImage(img, -img.width * 1.5, -img.height * 1.5, img.width * 3, img.height * 3);
     ctx.restore();
 
     applyModalZoom();

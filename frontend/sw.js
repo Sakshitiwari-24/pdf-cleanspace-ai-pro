@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pdf-cleanspace-v19-prominent-blank-highlights';
+const CACHE_NAME = 'pdf-cleanspace-v20-ultra-4k-crisp-reader';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

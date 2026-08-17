@@ -902,11 +902,12 @@ body {
 }
 
 /* WIDESCREEN FULLPAGE ZOOM READER MODAL */
+/* WIDESCREEN FULLPAGE ZOOM READER MODAL */
 .modal-card-widescreen {
-  max-width: 95vw !important;
-  width: 95vw !important;
-  height: 90vh !important;
-  max-height: 90vh !important;
+  max-width: 96vw !important;
+  width: 96vw !important;
+  height: 92vh !important;
+  max-height: 92vh !important;
   display: flex;
   flex-direction: column;
 }
@@ -943,12 +944,36 @@ body {
   z-index: 95;
 }
 
-/* Responsive */
+/* Responsive Enhancements for Laptops, Small Screens & Tablets */
+@media (max-width: 1440px) {
+  .modal-card-widescreen {
+    max-width: 98vw !important;
+    width: 98vw !important;
+    height: 94vh !important;
+    max-height: 94vh !important;
+    padding: 0.85rem 1rem !important;
+  }
+}
+
 @media (max-width: 1280px) {
   .workspace-container {
     grid-template-columns: 280px 1fr;
   }
   .workspace-inspector {
     display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .container {
+    padding: 0.75rem 0.85rem;
+  }
+  .workspace-container {
+    grid-template-columns: 1fr;
+  }
+  .workspace-sidebar {
+    position: relative;
+    top: 0;
+    max-height: none;
   }
 }
