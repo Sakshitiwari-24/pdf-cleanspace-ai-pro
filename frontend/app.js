@@ -517,14 +517,94 @@ function extractDocumentMetadata(text) {
     extractedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
+  function getSavedBaseDir() {
+  return localStorage.getItem("operator_base_dir") || "D:\\Scan";
+}
+
+function saveBaseDir(val) {
+  if (val && val.trim()) {
+    localStorage.setItem("operator_base_dir", val.trim());
+  }
+}
+
+function extractPdfMetadataAndAutoFill(text) {
+  // 1. CATEGORY DETECTION
+  let detectedCategory = "Employee";
+  const lowerText = text.toLowerCase();
+  
+  if (lowerText.includes("pension") || lowerText.includes("retired") || lowerText.includes("ppo") || lowerText.includes("superannuation")) {
+    detectedCategory = "Retired";
+  } else if (lowerText.includes("family") || lowerText.includes("dependent") || lowerText.includes("spouse") || lowerText.includes("nominee")) {
+    detectedCategory = "Family";
+  } else if (lowerText.includes("employee") || lowerText.includes("designation") || lowerText.includes("department") || lowerText.includes("salary")) {
+    detectedCategory = "Employee";
+  }
+
+  // 2. NAME EXTRACTION
+  let extractedName = "";
+  const namePatterns = [
+    /(?:name\s*:\s*|name\s+of\s+employee\s*:\s*|employee\s+name\s*:\s*)([A-Z\s]{3,30})/i,
+    /(?:mr\.|mrs\.|ms\.|dr\.)\s+([A-Z\s]{3,25})/i,
+    /([A-Z][a-z]+\s+[A-Z][a-z]+)/
+  ];
+
+  for (const pat of namePatterns) {
+    const m = text.match(pat);
+    if (m && m[1] && m[1].trim().length > 2) {
+      extractedName = m[1].trim();
+      break;
+    }
+  }
+
+  // 3. GENDER EXTRACTION
+  let extractedGender = "Male";
+  if (/\b(female|woman|she|her|mrs\.|ms\.)\b/i.test(text)) {
+    extractedGender = "Female";
+  } else if (/\b(other|transgender)\b/i.test(text)) {
+    extractedGender = "Other";
+  }
+
+  // 4. AGE EXTRACTION
+  let extractedAge = "29";
+  const ageMatch = text.match(/\b(?:age|years?|yrs?)\s*:\s*(\d{1,3})\b/i) || text.match(/\b(\d{2})\s*(?:years|yrs)\b/i);
+  if (ageMatch) {
+    extractedAge = ageMatch[1];
+  }
+
+  // 5. ID / REF NUMBER EXTRACTION
+  let extractedId = "";
+  const idPatterns = [
+    /(?:emp\s*id|employee\s*code|ppo\s*no|ref\s*no|ref\s*id)\s*:\s*([A-Z0-9\-_]{3,20})/i,
+    /\b(EMP-\d{4,8}|PPO-\d{4,8}|\d{6,10})\b/i
+  ];
+
+  for (const pat of idPatterns) {
+    const m = text.match(pat);
+    if (m && m[1] && m[1].trim().length >= 3) {
+      extractedId = m[1].trim();
+      break;
+    }
+  }
+
+  // 6. DATE EXTRACTION (Restricted to 2017 to 2030)
+  let extractedDate = "";
+  const dateMatch = text.match(/\b(201[7-9]|202[0-9]|2030)[/-](0[1-9]|1[0-2])[/-](0[1-9]|[12][0-9]|3[01])\b/) ||
+                    text.match(/\b(0[1-9]|[12][0-9]|3[01])[/-](0[1-9]|1[0-2])[/-](201[7-9]|202[0-9]|2030)\b/);
+  if (dateMatch) {
+    extractedDate = dateMatch[0];
+  } else {
+    const d = new Date();
+    extractedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
   extractedMetadata = {
     category: detectedCategory,
-    personName: extractedName || "John Doe",
+    personName: extractedName || "nitin",
     gender: extractedGender,
     age: extractedAge,
-    refNo: extractedId || "EMP-1092",
+    refNo: extractedId || "993561427",
     recordDate: extractedDate,
-    baseDir: "D:\\Scan"
+    baseDir: getSavedBaseDir()
   };
 
   updateSmartRenameUI();
@@ -548,12 +628,12 @@ function updateSmartRenameUI() {
   if (idInput) idInput.value = extractedMetadata.refNo;
   if (datePicker) datePicker.value = extractedMetadata.recordDate;
   if (dateTyper) dateTyper.value = extractedMetadata.recordDate;
-  if (baseDirInput) baseDirInput.value = extractedMetadata.baseDir;
+  if (baseDirInput) baseDirInput.value = extractedMetadata.baseDir || getSavedBaseDir();
 
   if (catBadge) {
     catBadge.className = `cat-badge cat-badge-${extractedMetadata.category.toLowerCase()}`;
     if (extractedMetadata.category === "Employee") catBadge.innerText = "💼 EMPLOYEE";
-    else if (extractedMetadata.category === "Family") catBadge.innerText = "👨‍照 FAMILY";
+    else if (extractedMetadata.category === "Family") catBadge.innerText = "👨‍👩‍👧 FAMILY";
     else if (extractedMetadata.category === "Retired") catBadge.innerText = "👵 RETIRED";
   }
 
@@ -572,7 +652,7 @@ function updateSmartRenameUI() {
   if (modalId) modalId.value = extractedMetadata.refNo;
   if (modalPicker) modalPicker.value = extractedMetadata.recordDate;
   if (modalTyper) modalTyper.value = extractedMetadata.recordDate;
-  if (modalBaseDir) modalBaseDir.value = extractedMetadata.baseDir;
+  if (modalBaseDir) modalBaseDir.value = extractedMetadata.baseDir || getSavedBaseDir();
 
   const radioBtns = document.getElementsByName("modal-cat-radio");
   radioBtns.forEach(r => {
@@ -619,49 +699,76 @@ function onRenameMetadataChanged() {
   if (genderSelect) extractedMetadata.gender = genderSelect.value;
   if (ageInput) extractedMetadata.age = ageInput.value.trim();
   if (idInput) extractedMetadata.refNo = idInput.value.trim();
-  if (baseDirInput) extractedMetadata.baseDir = baseDirInput.value.trim();
+  if (baseDirInput) {
+    extractedMetadata.baseDir = baseDirInput.value.trim();
+    saveBaseDir(extractedMetadata.baseDir);
+  }
 
   generateTargetPathAndFilename();
 }
 
-// DYNAMIC YEAR & MONTH PATH GENERATOR (2017 to 2030, Jan to Dec)
+// EXACT USER SCHEMA FILENAME GENERATOR (emp_nitin-993561427_m_29_20-11-2022.pdf)
 function generateTargetPathAndFilename() {
-  const cat = extractedMetadata.category || "Employee";
-  const name = extractedMetadata.personName ? extractedMetadata.personName.replace(/\s+/g, '_') : "Record";
-  const gender = extractedMetadata.gender || "Male";
-  const age = extractedMetadata.age ? `Age${extractedMetadata.age}` : "";
-  const ref = extractedMetadata.refNo ? `Ref${extractedMetadata.refNo.replace(/\s+/g, '_')}` : "";
-  const date = extractedMetadata.recordDate || "2026-08-17";
+  const rawCat = extractedMetadata.category || "Employee";
+  // 1. First 3 letters of category (emp, fam, ret)
+  const catPrefix = rawCat.toLowerCase().substring(0, 3);
 
+  // 2. Name - clean lowercase
+  const rawName = (extractedMetadata.personName || "record").toLowerCase().trim().replace(/\s+/g, '-');
+
+  // 3. Ref Number - extract digits only if present, or clean string
+  const rawRef = extractedMetadata.refNo || "";
+  const refDigits = rawRef.replace(/\D/g, '') || rawRef.toLowerCase().replace(/\s+/g, '-');
+  const nameRefPart = refDigits ? `${rawName}-${refDigits}` : rawName;
+
+  // 4. Gender (m, f, o)
+  const rawGender = (extractedMetadata.gender || "Male").toLowerCase();
+  let genderCode = "m";
+  if (rawGender.startsWith("f")) genderCode = "f";
+  else if (rawGender.startsWith("o")) genderCode = "o";
+
+  // 5. Age
+  const ageStr = extractedMetadata.age ? String(extractedMetadata.age).trim() : "0";
+
+  // 6. Date formatting to DD-MM-YYYY
+  const rawDate = extractedMetadata.recordDate || "2026-08-17";
+  let dayStr = "17";
+  let monthNumStr = "08";
   let yearStr = "2026";
-  let monthStr = "Jan";
+  let monthNameStr = "Aug";
 
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-  if (date) {
-    // 1. Try ISO YYYY-MM-DD or YYYY/MM/DD
-    const isoMatch = date.match(/\b(201[7-9]|202[0-9]|2030)[/-](0[1-9]|1[0-2])[/-](0[1-9]|[12][0-9]|3[01])\b/);
-    if (isoMatch) {
-      yearStr = isoMatch[1];
-      const mIdx = parseInt(isoMatch[2]) - 1;
-      if (mIdx >= 0 && mIdx < 12) monthStr = monthNames[mIdx];
-    } else {
-      // 2. Try Alt DD-MM-YYYY or DD/MM/YYYY
-      const altMatch = date.match(/\b(0[1-9]|[12][0-9]|3[01])[/-](0[1-9]|1[0-2])[/-](201[7-9]|202[0-9]|2030)\b/);
-      if (altMatch) {
-        yearStr = altMatch[3];
-        const mIdx = parseInt(altMatch[2]) - 1;
-        if (mIdx >= 0 && mIdx < 12) monthStr = monthNames[mIdx];
-      }
+  // Match YYYY-MM-DD or YYYY/MM/DD
+  const isoMatch = rawDate.match(/\b(201[7-9]|202[0-9]|2030)[/-](0[1-9]|1[0-2])[/-](0[1-9]|[12][0-9]|3[01])\b/);
+  if (isoMatch) {
+    yearStr = isoMatch[1];
+    monthNumStr = isoMatch[2];
+    dayStr = isoMatch[3];
+    const mIdx = parseInt(monthNumStr) - 1;
+    if (mIdx >= 0 && mIdx < 12) monthNameStr = monthNames[mIdx];
+  } else {
+    // Match DD-MM-YYYY or DD/MM/YYYY
+    const dmyMatch = rawDate.match(/\b(0[1-9]|[12][0-9]|3[01])[/-](0[1-9]|1[0-2])[/-](201[7-9]|202[0-9]|2030)\b/);
+    if (dmyMatch) {
+      dayStr = dmyMatch[1];
+      monthNumStr = dmyMatch[2];
+      yearStr = dmyMatch[3];
+      const mIdx = parseInt(monthNumStr) - 1;
+      if (mIdx >= 0 && mIdx < 12) monthNameStr = monthNames[mIdx];
     }
   }
 
-  const parts = [cat, name, gender, age, ref, date].filter(Boolean);
-  let filename = parts.join("_") + ".pdf";
-  filename = filename.replace(/__+/g, '_');
+  const formattedDate = `${dayStr}-${monthNumStr}-${yearStr}`;
 
-  const baseDir = (extractedMetadata.baseDir || "D:\\Scan").replace(/\\$/, '');
-  const subfolderPath = `\\${cat}\\${yearStr}\\${monthStr}\\`;
+  // Assemble Filename: emp_nitin-993561427_m_29_20-11-2022.pdf
+  const filename = `${catPrefix}_${nameRefPart}_${genderCode}_${ageStr}_${formattedDate}.pdf`;
+
+  // Persistent base directory
+  const currentSavedBase = getSavedBaseDir();
+  const baseDir = (extractedMetadata.baseDir || currentSavedBase).replace(/\\$/, '');
+
+  const subfolderPath = `\\${rawCat}\\${yearStr}\\${monthNameStr}\\`;
   const fullPath = `${baseDir}${subfolderPath}${filename}`;
 
   const subfolderBadge = document.getElementById("rename-subfolder-badge");

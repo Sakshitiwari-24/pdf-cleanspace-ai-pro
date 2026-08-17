@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pdf-cleanspace-v11-vercel-instant-sync';
+const CACHE_NAME = 'pdf-cleanspace-v18-schema-base-persistence';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
