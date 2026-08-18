@@ -1,0 +1,26 @@
+{
+  "name": "PDF CleanSpace Studio Pro",
+  "short_name": "PDF CleanSpace",
+  "description": "Smart AI PDF Blank Page Removal and Guided Record Folder Studio",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "pdf-cleanspace-studio-app-v40",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#06090e",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "./app_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./app_icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

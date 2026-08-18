@@ -1,0 +1,10 @@
+{
+  "name": "pdf-cleanspace-ai-pro-frontend",
+  "version": "3.0.0",
+  "description": "Smart AI-Powered PDF Blank Page Cleaner, Manual Inspector, Splitter & Reader",
+  "main": "app.js",
+  "scripts": {
+    "build": "node -c app.js"
+  },
+  "license": "MIT"
+}
