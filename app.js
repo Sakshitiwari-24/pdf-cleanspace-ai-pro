@@ -654,22 +654,27 @@ function updateAllPreviews() {
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/[\s-]+/g, '-');
 
-  // Age digits
-  const ageDigits = ageVal ? String(ageVal).trim().replace(/\D/g, '') : "";
+  // Gender (M / F / O)
+  const rawGender = genderVal || extractedMetadata.gender || "Female";
+  const genderCode = rawGender.trim().toUpperCase().startsWith("M") ? "M" : (rawGender.trim().toUpperCase().startsWith("F") ? "F" : "O");
 
-  // Ref digits
+  // Age digits (or '0' fallback)
+  const ageDigits = ageVal ? String(ageVal).trim().replace(/\D/g, '') : "0";
+
+  // Ref digits (or '0' fallback)
   const rawRef = refVal || "";
-  const refDigits = rawRef.replace(/\D/g, '') || rawRef.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-
-  let nameAgeRefPart = cleanName;
-  if (ageDigits) nameAgeRefPart += `-${ageDigits}`;
-  if (refDigits) nameAgeRefPart += `-${refDigits}`;
+  const refDigits = rawRef.replace(/\D/g, '') || rawRef.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || "0";
 
   // Universal Robust Date Parsing (any year/month/day format)
   const parsedDate = parseRecordDate(dateVal);
-  const { yearStr, monthNumStr, dayStr, monthNameStr, formattedDate } = parsedDate;
+  const { yearStr, monthNumStr, dayStr, monthNameStr } = parsedDate;
 
-  const filename = `${catPrefix}_${nameAgeRefPart}_${formattedDate}.pdf`;
+  // Format date as dd-mm-yy (2-digit year)
+  const yearYY = yearStr.slice(-2);
+  const formattedDateYY = `${dayStr}-${monthNumStr}-${yearYY}`;
+
+  // Format: category_name_gender_age_ref.no._dd-mm-yy.pdf
+  const filename = `${catPrefix}_${cleanName}_${genderCode}_${ageDigits}_${refDigits}_${formattedDateYY}.pdf`;
 
   const displayBaseDir = cleanBaseDir ? cleanBaseDir.replace(/\\$/, '') : "[Set Base Folder]";
   const baseDir = cleanBaseDir ? cleanBaseDir.replace(/\\$/, '') : "";
@@ -691,9 +696,13 @@ function updateAllPreviews() {
 
   // Update preview boxes
   const folderPathPreview = document.getElementById("rename-folder-path-preview");
+  const modalFolderPathPreview = document.getElementById("modal-folder-path-preview");
+  const modalFilenamePreview = document.getElementById("modal-filename-preview");
   const outputFilenameEl = document.getElementById("rename-output-filename");
 
   if (folderPathPreview) folderPathPreview.innerText = folderPath;
+  if (modalFolderPathPreview) modalFolderPathPreview.innerText = folderPath;
+  if (modalFilenamePreview) modalFilenamePreview.innerText = filename;
 
   if (outputFilenameEl && activeEl !== "rename-output-filename") {
     if (!outputFilenameEl.dataset.userEdited) {
@@ -1540,7 +1549,18 @@ async function exportCleanedPdf(saveMode = 'auto') {
 
     let exportName = outputEl ? outputEl.value.trim() : "";
     if (!exportName) {
-      exportName = `${extractedMetadata.category}_${extractedMetadata.personName || 'Record'}_Cleaned.pdf`;
+      const rawCat = extractedMetadata.category || "Employee";
+      const catPrefix = rawCat.toLowerCase().substring(0, 3);
+      const cleanName = (extractedMetadata.personName || "record").toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-');
+      const rawGender = extractedMetadata.gender || "Female";
+      const genderCode = rawGender.trim().toUpperCase().startsWith("M") ? "M" : (rawGender.trim().toUpperCase().startsWith("F") ? "F" : "O");
+      const ageDigits = extractedMetadata.age ? String(extractedMetadata.age).trim().replace(/\D/g, '') : "0";
+      const rawRef = extractedMetadata.refNo || "";
+      const refDigits = rawRef.replace(/\D/g, '') || rawRef.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || "0";
+      const parsedDate = parseRecordDate(extractedMetadata.recordDate);
+      const yearYY = parsedDate.yearStr.slice(-2);
+      const formattedDateYY = `${parsedDate.dayStr}-${parsedDate.monthNumStr}-${yearYY}`;
+      exportName = `${catPrefix}_${cleanName}_${genderCode}_${ageDigits}_${refDigits}_${formattedDateYY}.pdf`;
     }
     if (!exportName.toLowerCase().endsWith(".pdf")) exportName += ".pdf";
 

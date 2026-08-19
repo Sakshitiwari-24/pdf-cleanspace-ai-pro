@@ -24,7 +24,7 @@
 
 - 🎯 **Dual-Pass Hybrid Classifier**: Combines digital font parsing with 5×5 spatial grid ink distribution analysis.
 - 📂 **Dynamic Hierarchy Target Path**: Automatically builds `\Category\Year\Month\DD\` folder structures (e.g. `D:\RAILWAY\Employee\2020\Feb\06\`).
-- 📄 **Clean Standardized Filenames**: Generates clean, human-readable file names without unwanted default age placeholders (e.g. `emp_rameshwar-kumar-993561427_06-02-2020.pdf`).
+- 📄 **Clean Standardized Filenames**: Generates standardized, structured filenames following the `category_name_gender_age_ref.no._dd-mm-yy` schema (e.g. `emp_rameshwar-kumar_M_45_993561427_06-02-20.pdf`).
 - 🔍 **HD Fullscreen Zoom Reader**: Interactive reader with Previous (`◀`) / Next (`▶`) toolbar & floating buttons, and arrow key shortcuts (`←` / `→`) to flip pages directly in zoom mode.
 - ✂️ **Sequential Multi-Part PDF Splitter**: Processes multi-person PDFs sequentially part-by-part, allowing different categories and saving locations for each split segment.
 - 🟡 **Formal Yellow Gold Split Indicators**: Scissor icons and dashed lines stay neutral on hover and pop up in formal Yellow Gold (`#f59e0b`) when clicked.
@@ -42,7 +42,7 @@
       └── 📁 Year (e.g. 2020)
            └── 📁 Month (e.g. Feb)
                 └── 📁 Day (2 Digits, e.g. 06)
-                     └── 📄 emp_rameshwar-kumar-45-993561427_06-02-2020.pdf
+                     └── 📄 emp_rameshwar-kumar_M_45_993561427_06-02-20.pdf
 ```
 
 ---
