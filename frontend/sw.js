@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pdf-cleanspace-v43-visual-urlbar-pwa-guidance';
+const CACHE_NAME = 'pdf-cleanspace-v45-filename-schema-update';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
