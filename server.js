@@ -186,7 +186,7 @@ function recordProcessedFile(logData) {
   return { stats, logEntry };
 }
 
-const server = http.createServer((req, res) => {
+function requestHandler(req, res) {
   // CORS Headers to allow requests from Vercel web app or local client
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -343,7 +343,9 @@ const server = http.createServer((req, res) => {
       res.end(content, 'utf-8');
     }
   });
-});
+}
+
+const server = http.createServer(requestHandler);
 
 if (require.main === module) {
   server.listen(PORT, () => {
@@ -365,4 +367,5 @@ if (require.main === module) {
   });
 }
 
-module.exports = server;
+module.exports = requestHandler;
+module.exports.server = server;
