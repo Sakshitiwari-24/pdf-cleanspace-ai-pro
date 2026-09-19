@@ -15,5 +15,11 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# Vercel & Node local files
 .vercel
 node_modules/
+server.js
+package.json
+package-lock.json
+api/
+operator_stats.json
