@@ -49,6 +49,13 @@ function rebuildDailyStatsFromLogs(stats) {
   });
 }
 
+function getStatsFilePath() {
+  if (process.env.VERCEL) {
+    return path.join('/tmp', 'operator_stats.json');
+  }
+  return STATS_FILE;
+}
+
 function loadOperatorStats() {
   const todayStr = new Date().toISOString().split('T')[0];
   let stats = {
@@ -60,9 +67,12 @@ function loadOperatorStats() {
     logs: []
   };
 
-  if (fs.existsSync(STATS_FILE)) {
+  const targetPath = getStatsFilePath();
+  const sourcePath = fs.existsSync(targetPath) ? targetPath : STATS_FILE;
+
+  if (fs.existsSync(sourcePath)) {
     try {
-      const data = fs.readFileSync(STATS_FILE, 'utf8');
+      const data = fs.readFileSync(sourcePath, 'utf8');
       stats = JSON.parse(data);
       if (!stats.operators) stats.operators = {};
       if (!stats.logs) stats.logs = [];
@@ -87,7 +97,7 @@ function loadOperatorStats() {
   }
 
   if (updated) {
-    try { fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2)); } catch(e){}
+    try { fs.writeFileSync(targetPath, JSON.stringify(stats, null, 2)); } catch(e){}
   }
 
   return stats;
@@ -167,10 +177,10 @@ function recordProcessedFile(logData) {
   if (stats.logs.length > 2000) stats.logs = stats.logs.slice(0, 2000);
 
   try {
-    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+    fs.writeFileSync(getStatsFilePath(), JSON.stringify(stats, null, 2));
     console.log(`[Operator Stats] Recorded file save for '${opName}'. Today: ${op.filesProcessedToday}, Total: ${op.totalFilesProcessed}`);
   } catch (err) {
-    console.error('[Operator Stats Error] Failed to write stats:', err);
+    console.error('[Operator Stats Error] Failed to write stats:', err.message);
   }
 
   return { stats, logEntry };
@@ -241,7 +251,7 @@ const server = http.createServer((req, res) => {
           }
         }
 
-        fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+        try { fs.writeFileSync(getStatsFilePath(), JSON.stringify(stats, null, 2)); } catch(e){}
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, stats }));
       } catch (err) {
@@ -313,6 +323,9 @@ const server = http.createServer((req, res) => {
 
   // Support /static/ prefix or direct file path
   let filePath = path.join(FRONTEND_DIR, reqPath.replace(/^\/static\//, '/'));
+  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+    filePath = path.join(__dirname, reqPath.replace(/^\/static\//, '/'));
+  }
 
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     filePath = path.join(FRONTEND_DIR, 'index.html');
@@ -332,20 +345,24 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  const url = `http://localhost:${PORT}/`;
-  console.log('='.repeat(60));
-  console.log(' ⚡ PDF CleanSpace - Node.js Local Web Server');
-  console.log('='.repeat(60));
-  console.log(` Server running at: ${url}`);
-  console.log(' Direct Local Disk Saver Active: /api/save-to-disk');
-  console.log(' Press Ctrl+C to stop the server.');
-  console.log('='.repeat(60));
+if (require.main === module) {
+  server.listen(PORT, () => {
+    const url = `http://localhost:${PORT}/`;
+    console.log('='.repeat(60));
+    console.log(' ⚡ PDF CleanSpace - Node.js Local Web Server');
+    console.log('='.repeat(60));
+    console.log(` Server running at: ${url}`);
+    console.log(' Direct Local Disk Saver Active: /api/save-to-disk');
+    console.log(' Press Ctrl+C to stop the server.');
+    console.log('='.repeat(60));
 
-  const startCmd = process.platform === 'win32' ? `start "" "${url}"` : process.platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
-  exec(startCmd, (err) => {
-    if (err) {
-      console.log(`Open your web browser manually at: ${url}`);
-    }
+    const startCmd = process.platform === 'win32' ? `start "" "${url}"` : process.platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
+    exec(startCmd, (err) => {
+      if (err) {
+        console.log(`Open your web browser manually at: ${url}`);
+      }
+    });
   });
-});
+}
+
+module.exports = server;

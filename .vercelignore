@@ -2,11 +2,13 @@
 .git
 .gitignore
 *.py
-requirements.txt
+backend/
 server.js
+requirements.txt
 package.json
 package-lock.json
 node_modules/
 PDF_CleanSpace_Desktop_Package.zip
 Create_Desktop_Shortcut.bat
 Launch_PDF_CleanSpace.bat
+operator_stats.json
