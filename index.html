@@ -69,26 +69,26 @@
     </nav>
 
     <div style="display: flex; align-items: center; gap: 0.65rem;">
-      <!-- OPERATOR SELECTION & LIVE COUNTER BADGE -->
-      <div class="operator-badge-container" style="display: flex; align-items: center; background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 3px 8px; color: #ffffff;">
-        <span style="font-size: 0.8rem; font-weight: 700; margin-right: 4px;" title="Active Operator">👤</span>
-        <select id="operator-select" class="operator-select-dropdown" onchange="handleOperatorChange(this.value)" style="background: transparent; color: #ffffff; border: none; font-size: 0.82rem; font-weight: 700; outline: none; cursor: pointer; padding-right: 4px;">
-          <option value="Operator 1" style="color: #0f172a;">Operator 1</option>
-          <option value="Operator 2" style="color: #0f172a;">Operator 2</option>
-          <option value="Operator 3" style="color: #0f172a;">Operator 3</option>
-          <option value="+new" style="color: #10b981; font-weight: 800;">➕ New Operator...</option>
+      <!-- HIGH CONTRAST OPERATOR SELECTION & LIVE COUNTER BADGE -->
+      <div class="operator-badge-container" style="display: flex; align-items: center; background: #0f172a; border: 1.5px solid #1e293b; border-radius: 8px; padding: 4px 10px; color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+        <span style="font-size: 0.85rem; margin-right: 4px;" title="Active Operator">👤</span>
+        <select id="operator-select" class="operator-select-dropdown" onchange="handleOperatorChange(this.value)" style="background: #0f172a; color: #ffffff; border: none; font-size: 0.85rem; font-weight: 800; outline: none; cursor: pointer; padding-right: 6px;">
+          <option value="Operator 1" style="color: #ffffff; background: #0f172a;">Operator 1</option>
+          <option value="Operator 2" style="color: #ffffff; background: #0f172a;">Operator 2</option>
+          <option value="Operator 3" style="color: #ffffff; background: #0f172a;">Operator 3</option>
+          <option value="+new" style="color: #34d399; font-weight: 800; background: #0f172a;">➕ New Operator...</option>
         </select>
         
-        <div class="operator-counter-pill" onclick="openOperatorStatsModal()" title="Click to view detailed Operator Analytics & Processing Reports" style="display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.9); padding: 3px 10px; border-radius: 6px; cursor: pointer; margin-left: 6px; font-size: 0.78rem; font-weight: 800; transition: transform 0.2s;">
+        <div class="operator-counter-pill" onclick="openOperatorStatsModal()" title="Click to view detailed Operator Analytics & Processing Reports" style="display: flex; align-items: center; gap: 6px; background: #10b981; color: #ffffff; padding: 3px 10px; border-radius: 6px; cursor: pointer; margin-left: 6px; font-size: 0.8rem; font-weight: 800; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
           <span>📊 Today:</span>
-          <span id="nav-operator-today-count" style="background: #ffffff; color: #065f46; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem;">0</span>
+          <span id="nav-operator-today-count" style="background: #ffffff; color: #065f46; padding: 1px 7px; border-radius: 4px; font-size: 0.85rem; font-weight: 900;">0</span>
           <span style="opacity: 0.7;">|</span>
           <span style="opacity: 0.9;">Total:</span>
-          <span id="nav-total-processed-count" style="background: rgba(255,255,255,0.25); color: #ffffff; padding: 1px 5px; border-radius: 4px; font-size: 0.78rem;">0</span>
+          <span id="nav-total-processed-count" style="background: rgba(255,255,255,0.25); color: #ffffff; padding: 1px 5px; border-radius: 4px; font-size: 0.8rem; font-weight: 800;">0</span>
         </div>
       </div>
 
-      <button id="nav-stats-btn" class="btn btn-secondary" onclick="openOperatorStatsModal()" title="View Operator Analytics & File Count Logs">
+      <button id="nav-stats-btn" class="btn btn-secondary" onclick="openOperatorStatsModal()" title="View Operator Analytics & File Count Logs" style="font-weight: 700;">
         📊 Stats & Logs
       </button>
 
@@ -115,6 +115,42 @@
 
     <!-- SINGLE FILE INSPECTOR SECTION -->
     <section id="single-view" class="view-section active">
+      
+      <!-- OPERATOR SESSION & LIVE COUNTER BANNER CARD -->
+      <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 12px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); border: 1px solid #334155;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            👤
+          </div>
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; font-weight: 700;">Active Operator Session</div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 0.4rem;">
+              <span id="banner-active-op-name">Operator 1</span>
+              <button class="btn btn-sm" onclick="openOperatorStatsModal()" style="background: rgba(255,255,255,0.15); color: #ffffff; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; border: none; cursor: pointer; font-weight: 700;">
+                🔄 Change / Inspect Stats
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <!-- Live Today Counter Metric -->
+          <div style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid #10b981; padding: 0.45rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.65rem;" onclick="openOperatorStatsModal()">
+            <div style="font-size: 0.75rem; color: #a7f3d0; font-weight: 700; text-transform: uppercase;">Files Processed Today</div>
+            <div id="banner-operator-today-count" style="font-size: 1.6rem; font-weight: 900; color: #34d399;">0</div>
+          </div>
+
+          <!-- Total Lifetime Counter Metric -->
+          <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); padding: 0.45rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.65rem;" onclick="openOperatorStatsModal()">
+            <div style="font-size: 0.75rem; color: #cbd5e1; font-weight: 700; text-transform: uppercase;">Total Files Lifetime</div>
+            <div id="banner-total-processed-count" style="font-size: 1.6rem; font-weight: 900; color: #ffffff;">0</div>
+          </div>
+
+          <button class="btn btn-success" onclick="openOperatorStatsModal()" style="font-weight: 800; font-size: 0.85rem; padding: 0.6rem 1.1rem;">
+            📊 Date-Wise Analytics & Reports
+          </button>
+        </div>
+      </div>
       
       <!-- 4-Step Guided Operator Workflow Banner -->
       <div class="workflow-steps" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">

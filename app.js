@@ -2027,6 +2027,10 @@ function updateNavbarCounterUI() {
   const opTodayEl = document.getElementById('nav-operator-today-count');
   const totalEl = document.getElementById('nav-total-processed-count');
 
+  const bannerOpNameEl = document.getElementById('banner-active-op-name');
+  const bannerOpTodayEl = document.getElementById('banner-operator-today-count');
+  const bannerTotalEl = document.getElementById('banner-total-processed-count');
+
   let opToday = 0;
   let totalFiles = 0;
 
@@ -2044,6 +2048,10 @@ function updateNavbarCounterUI() {
 
   if (opTodayEl) opTodayEl.innerText = opToday;
   if (totalEl) totalEl.innerText = totalFiles;
+
+  if (bannerOpNameEl) bannerOpNameEl.innerText = activeOperatorName;
+  if (bannerOpTodayEl) bannerOpTodayEl.innerText = opToday;
+  if (bannerTotalEl) bannerTotalEl.innerText = totalFiles;
 }
 
 async function logProcessedFileEvent(targetPath, pageCount = 1, blanksRemoved = 0, saveMode = 'auto') {
