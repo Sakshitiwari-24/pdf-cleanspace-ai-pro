@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pdf-cleanspace-v45-filename-schema-update';
+const CACHE_NAME = 'pdf-cleanspace-v50-operator-counter-system';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
