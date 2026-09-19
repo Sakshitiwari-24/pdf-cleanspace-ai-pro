@@ -1610,6 +1610,10 @@ async function exportCleanedPdf(saveMode = 'auto') {
 
     // Helper to remove saved part pages and move to next part
     const finalizePartSaved = (savedPath) => {
+      const retainedCount = pagesData ? pagesData.filter(p => !p.is_deleted).length : 1;
+      const blankCount = pagesData ? pagesData.filter(p => p.is_deleted).length : 0;
+      logProcessedFileEvent(savedPath, retainedCount, blankCount, saveMode);
+
       if (isSplitRun) {
         const remainingAllPages = pagesData.filter(p => p.page_index > firstCutIndex);
         const numPart1Pages = currentPartAllPages.length;
@@ -1667,7 +1671,10 @@ async function exportCleanedPdf(saveMode = 'auto') {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               targetPath: fullTargetPath,
-              pdfBase64: base64Data
+              pdfBase64: base64Data,
+              operatorName: activeOperatorName,
+              pageCount: pagesData ? pagesData.filter(p => !p.is_deleted).length : 1,
+              blanksRemoved: pagesData ? pagesData.filter(p => p.is_deleted).length : 0
             })
           });
 
@@ -1919,3 +1926,529 @@ async function triggerPwaPrompt() {
     `;
   }
 }
+
+// ==========================================
+// 👤 OPERATOR TRACKING & FILE COUNTER SYSTEM
+// ==========================================
+
+let activeOperatorName = localStorage.getItem('pdf_active_operator') || 'Operator 1';
+let operatorList = JSON.parse(localStorage.getItem('pdf_operator_list') || '["Operator 1", "Operator 2", "Operator 3"]');
+let serverOperatorStats = null;
+let currentModalStatsTab = 'leaderboard';
+
+function initOperatorSystem() {
+  renderOperatorSelectDropdown();
+  fetchOperatorStats();
+}
+
+function renderOperatorSelectDropdown() {
+  const select = document.getElementById('operator-select');
+  if (!select) return;
+
+  const uniqueList = Array.from(new Set(operatorList.concat(['Operator 1', 'Operator 2', 'Operator 3'])));
+  operatorList = uniqueList;
+  localStorage.setItem('pdf_operator_list', JSON.stringify(operatorList));
+
+  let html = '';
+  uniqueList.forEach(op => {
+    const isSel = op === activeOperatorName ? 'selected' : '';
+    html += `<option value="${op}" ${isSel} style="color: #0f172a;">👤 ${op}</option>`;
+  });
+  html += `<option value="+new" style="color: #10b981; font-weight: 800;">➕ New Operator...</option>`;
+  select.innerHTML = html;
+  select.value = activeOperatorName;
+}
+
+function handleOperatorChange(value) {
+  if (value === '+new') {
+    const modal = document.getElementById('new-operator-modal');
+    if (modal) modal.classList.add('active');
+    const select = document.getElementById('operator-select');
+    if (select) select.value = activeOperatorName;
+    return;
+  }
+
+  activeOperatorName = value.trim();
+  localStorage.setItem('pdf_active_operator', activeOperatorName);
+  updateNavbarCounterUI();
+  fetchOperatorStats();
+}
+
+function saveNewOperatorFromModal() {
+  const input = document.getElementById('new-operator-name-input');
+  if (!input) return;
+  const newName = input.value.trim();
+  if (!newName) {
+    alert('Please enter a valid operator name or employee ID.');
+    return;
+  }
+
+  if (!operatorList.includes(newName)) {
+    operatorList.push(newName);
+    localStorage.setItem('pdf_operator_list', JSON.stringify(operatorList));
+  }
+
+  activeOperatorName = newName;
+  localStorage.setItem('pdf_active_operator', activeOperatorName);
+  input.value = '';
+
+  closeModal('new-operator-modal');
+  renderOperatorSelectDropdown();
+  updateNavbarCounterUI();
+  fetchOperatorStats();
+}
+
+async function fetchOperatorStats() {
+  const endpoints = [
+    "/api/operator-stats",
+    "http://localhost:8000/api/operator-stats",
+    "http://127.0.0.1:8000/api/operator-stats"
+  ];
+
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.stats) {
+          serverOperatorStats = data.stats;
+          updateNavbarCounterUI();
+          if (document.getElementById('operator-stats-modal')?.classList.contains('active')) {
+            renderOperatorStatsModalContent();
+          }
+          return;
+        }
+      }
+    } catch(e) {}
+  }
+}
+
+function updateNavbarCounterUI() {
+  const opTodayEl = document.getElementById('nav-operator-today-count');
+  const totalEl = document.getElementById('nav-total-processed-count');
+
+  let opToday = 0;
+  let totalFiles = 0;
+
+  if (serverOperatorStats) {
+    totalFiles = serverOperatorStats.totalFilesProcessed || 0;
+    if (serverOperatorStats.operators && serverOperatorStats.operators[activeOperatorName]) {
+      opToday = serverOperatorStats.operators[activeOperatorName].filesProcessedToday || 0;
+    }
+  } else {
+    const localSavedLogs = JSON.parse(localStorage.getItem('pdf_local_saved_logs') || '[]');
+    const todayStr = new Date().toISOString().split('T')[0];
+    totalFiles = localSavedLogs.length;
+    opToday = localSavedLogs.filter(l => l.operatorName === activeOperatorName && l.dateStr === todayStr).length;
+  }
+
+  if (opTodayEl) opTodayEl.innerText = opToday;
+  if (totalEl) totalEl.innerText = totalFiles;
+}
+
+async function logProcessedFileEvent(targetPath, pageCount = 1, blanksRemoved = 0, saveMode = 'auto') {
+  const payload = {
+    operatorName: activeOperatorName,
+    fileName: exportName || (targetPath ? targetPath.split(/[/\\]/).pop() : 'document.pdf'),
+    targetPath: targetPath || '',
+    pageCount: parseInt(pageCount || 1, 10),
+    blanksRemoved: parseInt(blanksRemoved || 0, 10),
+    saveMode: saveMode
+  };
+
+  // Local Storage Fallback Log
+  const todayStr = new Date().toISOString().split('T')[0];
+  const localLogs = JSON.parse(localStorage.getItem('pdf_local_saved_logs') || '[]');
+  localLogs.unshift({
+    timestamp: new Date().toISOString(),
+    dateStr: todayStr,
+    ...payload
+  });
+  if (localLogs.length > 500) localLogs.length = 500;
+  localStorage.setItem('pdf_local_saved_logs', JSON.stringify(localLogs));
+
+  // Server API Sync
+  const endpoints = [
+    "/api/log-processed-file",
+    "http://localhost:8000/api/log-processed-file",
+    "http://127.0.0.1:8000/api/log-processed-file"
+  ];
+
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.stats) {
+          serverOperatorStats = data.stats;
+          break;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Visual counter pill bump animation
+  const pill = document.querySelector('.operator-counter-pill');
+  if (pill) {
+    pill.classList.add('operator-counter-bump');
+    setTimeout(() => pill.classList.remove('operator-counter-bump'), 500);
+  }
+
+  updateNavbarCounterUI();
+}
+
+function openOperatorStatsModal() {
+  const modal = document.getElementById('operator-stats-modal');
+  if (modal) modal.classList.add('active');
+  fetchOperatorStats().then(() => renderOperatorStatsModalContent());
+}
+
+function formatDateDMY(dateInput) {
+  if (!dateInput) return '';
+  if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+    const parts = dateInput.split('-');
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return String(dateInput);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+let selectedStatsDateFilter = new Date().toISOString().split('T')[0];
+
+function setModalDateFilter(dateVal) {
+  selectedStatsDateFilter = dateVal;
+  const picker = document.getElementById('modal-date-picker-input');
+  if (picker && dateVal !== 'all') picker.value = dateVal;
+  updateModalDateLabelUI();
+  renderOperatorStatsModalContent();
+}
+
+function setModalDatePreset(preset) {
+  const today = new Date();
+  if (preset === 'today') {
+    selectedStatsDateFilter = today.toISOString().split('T')[0];
+  } else if (preset === 'yesterday') {
+    const yest = new Date(today);
+    yest.setDate(yest.getDate() - 1);
+    selectedStatsDateFilter = yest.toISOString().split('T')[0];
+  } else if (preset === 'all') {
+    selectedStatsDateFilter = 'all';
+  }
+  const picker = document.getElementById('modal-date-picker-input');
+  if (picker) {
+    picker.value = selectedStatsDateFilter === 'all' ? '' : selectedStatsDateFilter;
+  }
+  updateModalDateLabelUI();
+  renderOperatorStatsModalContent();
+}
+
+function updateModalDateLabelUI() {
+  const lbl = document.getElementById('modal-active-date-label');
+  if (!lbl) return;
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (selectedStatsDateFilter === 'all') {
+    lbl.innerText = 'Showing: All History (Lifetime)';
+    lbl.style.background = '#eff6ff';
+    lbl.style.borderColor = '#bfdbfe';
+    lbl.style.color = '#1d4ed8';
+  } else if (selectedStatsDateFilter === todayStr) {
+    lbl.innerText = `Showing: Today (${formatDateDMY(todayStr)})`;
+    lbl.style.background = '#ecfdf5';
+    lbl.style.borderColor = '#a7f3d0';
+    lbl.style.color = '#10b981';
+  } else {
+    lbl.innerText = `Showing Date: ${formatDateDMY(selectedStatsDateFilter)}`;
+    lbl.style.background = '#fef3c7';
+    lbl.style.borderColor = '#fde68a';
+    lbl.style.color = '#b45309';
+  }
+}
+
+function switchModalStatsTab(tabName) {
+  currentModalStatsTab = tabName;
+  const leadBtn = document.getElementById('tab-modal-leaderboard');
+  const dailyBtn = document.getElementById('tab-modal-daily');
+  const logBtn = document.getElementById('tab-modal-logs');
+
+  const leadView = document.getElementById('modal-stats-leaderboard-view');
+  const dailyView = document.getElementById('modal-stats-daily-view');
+  const logView = document.getElementById('modal-stats-logs-view');
+
+  if (leadBtn) leadBtn.className = 'btn btn-sm ' + (tabName === 'leaderboard' ? 'btn-primary' : 'btn-secondary');
+  if (dailyBtn) dailyBtn.className = 'btn btn-sm ' + (tabName === 'daily' ? 'btn-primary' : 'btn-secondary');
+  if (logBtn) logBtn.className = 'btn btn-sm ' + (tabName === 'logs' ? 'btn-primary' : 'btn-secondary');
+
+  if (leadView) leadView.style.display = tabName === 'leaderboard' ? 'block' : 'none';
+  if (dailyView) dailyView.style.display = tabName === 'daily' ? 'block' : 'none';
+  if (logView) logView.style.display = tabName === 'logs' ? 'block' : 'none';
+}
+
+function renderOperatorStatsModalContent() {
+  updateModalDateLabelUI();
+  const todayStr = new Date().toISOString().split('T')[0];
+  let stats = serverOperatorStats;
+
+  if (!stats) {
+    const localLogs = JSON.parse(localStorage.getItem('pdf_local_saved_logs') || '[]');
+    stats = {
+      totalFilesProcessed: localLogs.length,
+      totalPagesProcessed: localLogs.reduce((acc, l) => acc + (l.pageCount || 1), 0),
+      totalBlanksRemoved: localLogs.reduce((acc, l) => acc + (l.blanksRemoved || 0), 0),
+      operators: {},
+      dailyStats: {},
+      logs: localLogs
+    };
+  }
+
+  const allLogs = stats.logs || [];
+
+  // Filter logs for selected date
+  const filteredLogs = (selectedStatsDateFilter === 'all')
+    ? allLogs
+    : allLogs.filter(l => (l.dateStr || (l.timestamp ? l.timestamp.split('T')[0] : '')) === selectedStatsDateFilter);
+
+  // Compute metrics for selected date
+  const selectedDateTotalFiles = filteredLogs.length;
+  const selectedDateTotalPages = filteredLogs.reduce((acc, l) => acc + (l.pageCount || 1), 0);
+  const selectedDateTotalBlanks = filteredLogs.reduce((acc, l) => acc + (l.blanksRemoved || 0), 0);
+
+  // Compute operator breakdown for selected date
+  const selectedDateOpMap = {};
+  filteredLogs.forEach(l => {
+    const op = l.operatorName || 'Operator';
+    if (!selectedDateOpMap[op]) {
+      selectedDateOpMap[op] = { name: op, files: 0, pages: 0, blanks: 0, lastActive: l.timestamp };
+    }
+    selectedDateOpMap[op].files += 1;
+    selectedDateOpMap[op].pages += (l.pageCount || 1);
+    selectedDateOpMap[op].blanks += (l.blanksRemoved || 0);
+  });
+
+  const activeOpCountForSelectedDate = selectedDateOpMap[activeOperatorName] ? selectedDateOpMap[activeOperatorName].files : 0;
+
+  // Render Metric Cards
+  const opTodayEl = document.getElementById('modal-stat-op-today');
+  const activeNameEl = document.getElementById('modal-stat-active-op-name');
+  const totalFilesEl = document.getElementById('modal-stat-total-files');
+  const totalSubEl = document.getElementById('modal-stat-total-sub');
+  const blanksEl = document.getElementById('modal-stat-blanks-removed');
+  const pagesEl = document.getElementById('modal-stat-pages-cleaned');
+
+  if (opTodayEl) opTodayEl.innerText = activeOpCountForSelectedDate;
+  if (activeNameEl) activeNameEl.innerText = `(${activeOperatorName})`;
+  if (totalFilesEl) totalFilesEl.innerText = selectedDateTotalFiles;
+  if (totalSubEl) totalSubEl.innerText = selectedStatsDateFilter === 'all' ? 'Lifetime Saved' : `Saved on ${formatDateDMY(selectedStatsDateFilter)}`;
+  if (blanksEl) blanksEl.innerText = selectedDateTotalBlanks;
+  if (pagesEl) pagesEl.innerText = selectedDateTotalPages;
+
+  // 1. Render Operator Performance Leaderboard for Selected Date
+  const tbody = document.getElementById('operator-leaderboard-tbody');
+  if (tbody) {
+    let rowsHtml = '';
+    const allRegisteredOps = Object.keys(stats.operators || {}).concat(Object.keys(selectedDateOpMap)).concat(operatorList);
+    const uniqueOpNames = Array.from(new Set(allRegisteredOps));
+
+    const opListForTable = uniqueOpNames.map(opName => {
+      const globalOp = (stats.operators && stats.operators[opName]) || {};
+      const dateOp = selectedDateOpMap[opName] || { files: 0, pages: 0, blanks: 0 };
+      return {
+        name: opName,
+        filesOnDate: dateOp.files,
+        totalFilesLifetime: globalOp.totalFilesProcessed || dateOp.files,
+        pagesOnDate: dateOp.pages,
+        blanksOnDate: dateOp.blanks,
+        lastActive: globalOp.lastActive || dateOp.lastActive
+      };
+    });
+
+    opListForTable.sort((a,b) => b.filesOnDate - a.filesOnDate || b.totalFilesLifetime - a.totalFilesLifetime);
+
+    if (opListForTable.length === 0) {
+      rowsHtml = `<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem;">No operator records found.</td></tr>`;
+    } else {
+      opListForTable.forEach(op => {
+        const isCurrent = op.name === activeOperatorName;
+        const lastTime = op.lastActive ? new Date(op.lastActive).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+        rowsHtml += `
+          <tr style="${isCurrent ? 'background: #f0fdf4; font-weight: 700;' : ''}">
+            <td style="display: flex; align-items: center; gap: 0.35rem;">
+              <span>👤</span> ${op.name} ${isCurrent ? '<span style="background: #10b981; color: #fff; font-size: 0.65rem; padding: 1px 5px; border-radius: 4px;">ACTIVE</span>' : ''}
+            </td>
+            <td style="text-align: center; color: #15803d; font-weight: 800; font-size: 0.9rem;">${op.filesOnDate}</td>
+            <td style="text-align: center; color: #1d4ed8; font-weight: 700;">${op.totalFilesLifetime}</td>
+            <td style="text-align: center;">${op.pagesOnDate}</td>
+            <td style="text-align: center; color: #b45309;">${op.blanksOnDate}</td>
+            <td style="color: #64748b; font-size: 0.78rem;">${lastTime}</td>
+          </tr>
+        `;
+      });
+    }
+    tbody.innerHTML = rowsHtml;
+  }
+
+  // 2. Render Date-Wise Work Summary Table (In DMY Format)
+  const dailyTbody = document.getElementById('operator-daily-tbody');
+  if (dailyTbody) {
+    let dailyHtml = '';
+    const dateGroupMap = {};
+    allLogs.forEach(l => {
+      const d = l.dateStr || (l.timestamp ? l.timestamp.split('T')[0] : 'Unknown Date');
+      if (!dateGroupMap[d]) {
+        dateGroupMap[d] = { dateStr: d, totalFiles: 0, totalPages: 0, totalBlanks: 0, opBreakdown: {} };
+      }
+      const dg = dateGroupMap[d];
+      dg.totalFiles += 1;
+      dg.totalPages += (l.pageCount || 1);
+      dg.totalBlanks += (l.blanksRemoved || 0);
+
+      const op = l.operatorName || 'Operator';
+      dg.opBreakdown[op] = (dg.opBreakdown[op] || 0) + 1;
+    });
+
+    const datesSorted = Object.keys(dateGroupMap).sort().reverse();
+
+    if (datesSorted.length === 0) {
+      dailyHtml = `<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem;">No date-wise records found yet.</td></tr>`;
+    } else {
+      datesSorted.forEach(dStr => {
+        const dg = dateGroupMap[dStr];
+        const isSelected = selectedStatsDateFilter === dStr;
+        const dmyDisplay = formatDateDMY(dStr);
+        const opBadges = Object.entries(dg.opBreakdown)
+          .map(([op, count]) => `<span style="background: #e0f2fe; color: #0369a1; padding: 1px 6px; border-radius: 4px; font-size: 0.73rem; font-weight: 700; margin-right: 4px;">👤 ${op}: <strong>${count}</strong></span>`)
+          .join('');
+
+        dailyHtml += `
+          <tr style="${isSelected ? 'background: #fef3c7; font-weight: 700;' : ''}">
+            <td style="font-weight: 800; color: #0f172a; white-space: nowrap;">
+              📅 ${dmyDisplay} ${dStr === todayStr ? '<span style="background: #10b981; color: #fff; font-size: 0.65rem; padding: 1px 5px; border-radius: 4px;">TODAY</span>' : ''}
+            </td>
+            <td style="text-align: center; font-weight: 800; color: #1d4ed8; font-size: 0.9rem;">${dg.totalFiles} files</td>
+            <td>${opBadges}</td>
+            <td style="text-align: center;">${dg.totalPages}</td>
+            <td style="text-align: center; color: #dc2626; font-weight: 700;">${dg.totalBlanks}</td>
+            <td style="text-align: center;">
+              <button class="btn btn-sm ${isSelected ? 'btn-amber' : 'btn-secondary'}" onclick="setModalDateFilter('${dStr}')" style="font-size: 0.73rem; padding: 2px 8px; font-weight: 700;">
+                ${isSelected ? '✓ Selected' : '🔍 Inspect Date'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+    dailyTbody.innerHTML = dailyHtml;
+  }
+
+  // 3. Render Processed Files Activity Log Table (Filtered by Selected Date, Time formatted as DD-MM-YYYY HH:MM)
+  const logsTbody = document.getElementById('operator-logs-tbody');
+  if (logsTbody) {
+    let logsHtml = '';
+    if (filteredLogs.length === 0) {
+      logsHtml = `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 1.5rem;">No saved files found for date '${formatDateDMY(selectedStatsDateFilter)}'.</td></tr>`;
+    } else {
+      filteredLogs.slice(0, 150).forEach(log => {
+        const dObj = log.timestamp ? new Date(log.timestamp) : new Date();
+        const dmyDate = formatDateDMY(log.dateStr || log.timestamp);
+        const clockTime = dObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const timeStr = `${dmyDate} ${clockTime}`;
+
+        logsHtml += `
+          <tr>
+            <td style="white-space: nowrap; color: #64748b; font-weight: 600;">${timeStr}</td>
+            <td style="font-weight: 700;">👤 ${log.operatorName || 'Operator'}</td>
+            <td style="font-weight: 700; color: #0284c7; word-break: break-all;">📄 ${log.fileName || 'document.pdf'}</td>
+            <td style="font-family: monospace; font-size: 0.72rem; color: #334155; word-break: break-all;">${log.targetPath || '-'}</td>
+            <td style="text-align: center;">
+              <span style="color: #15803d; font-weight: 700;">${log.pageCount || 1} pgs</span> / 
+              <span style="color: #dc2626; font-weight: 700;">${log.blanksRemoved || 0} blanks</span>
+            </td>
+          </tr>
+        `;
+      });
+    }
+    logsTbody.innerHTML = logsHtml;
+  }
+}
+
+function exportOperatorCsvReport() {
+  let logs = [];
+  if (serverOperatorStats && serverOperatorStats.logs) {
+    logs = serverOperatorStats.logs;
+  } else {
+    logs = JSON.parse(localStorage.getItem('pdf_local_saved_logs') || '[]');
+  }
+
+  if (logs.length === 0) {
+    alert('No processing logs available to export.');
+    return;
+  }
+
+  let csvContent = 'Timestamp,Date (DD-MM-YYYY),Operator Name,Saved Filename,Target Path,Page Count,Blank Pages Removed,Save Mode\n';
+  logs.forEach(log => {
+    const time = `"${log.timestamp || ''}"`;
+    const date = `"${formatDateDMY(log.dateStr || log.timestamp)}"`;
+    const op = `"${(log.operatorName || '').replace(/"/g, '""')}"`;
+    const fn = `"${(log.fileName || '').replace(/"/g, '""')}"`;
+    const path = `"${(log.targetPath || '').replace(/"/g, '""')}"`;
+    const pgs = log.pageCount || 1;
+    const blanks = log.blanksRemoved || 0;
+    const mode = `"${log.saveMode || 'auto'}"`;
+
+    csvContent += `${time},${date},${op},${fn},${path},${pgs},${blanks},${mode}\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const filename = `operator_processing_report_${formatDateDMY(new Date().toISOString().split('T')[0])}.csv`;
+  downloadBlob(blob, filename);
+}
+
+async function resetTodayOperatorCountPrompt() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (!confirm(`Are you sure you want to reset today's (${formatDateDMY(todayStr)}) processed file count for operator '${activeOperatorName}'?`)) {
+    return;
+  }
+
+  const endpoints = [
+    "/api/reset-operator-stats",
+    "http://localhost:8000/api/reset-operator-stats",
+    "http://127.0.0.1:8000/api/reset-operator-stats"
+  ];
+
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operatorName: activeOperatorName })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.stats) {
+          serverOperatorStats = data.stats;
+          break;
+        }
+      }
+    } catch(e) {}
+  }
+
+  updateNavbarCounterUI();
+  renderOperatorStatsModalContent();
+  alert(`✓ Today's (${formatDateDMY(todayStr)}) file count for '${activeOperatorName}' has been reset to 0.`);
+}
+
+// Auto Init on Load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initOperatorSystem);
+} else {
+  initOperatorSystem();
+}
+
+

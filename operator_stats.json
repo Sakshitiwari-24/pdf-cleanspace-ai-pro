@@ -1,0 +1,80 @@
+{
+  "totalFilesProcessed": 3,
+  "totalPagesProcessed": 170,
+  "totalBlanksRemoved": 2,
+  "operators": {
+    "Operator 1": {
+      "name": "Operator 1",
+      "filesProcessedToday": 2,
+      "totalFilesProcessed": 2,
+      "totalPagesProcessed": 164,
+      "totalBlanksRemoved": 0,
+      "lastActive": "2026-09-19T10:50:21.397Z",
+      "lastResetDate": "2026-09-19"
+    },
+    "Sakshi": {
+      "name": "Sakshi",
+      "filesProcessedToday": 1,
+      "totalFilesProcessed": 1,
+      "totalPagesProcessed": 6,
+      "totalBlanksRemoved": 2,
+      "lastActive": "2026-09-19T10:33:49.633Z",
+      "lastResetDate": "2026-09-19"
+    }
+  },
+  "logs": [
+    {
+      "id": "log_1789815021397_p4vv9",
+      "timestamp": "2026-09-19T10:50:21.397Z",
+      "dateStr": "2026-09-19",
+      "operatorName": "Operator 1",
+      "fileName": "emp_record_M_0_0_19-09-26.pdf",
+      "targetPath": "D:\\RAILWAY\\Employee\\2026\\Sep\\19\\emp_record_M_0_0_19-09-26.pdf",
+      "pageCount": 58,
+      "blanksRemoved": 0,
+      "saveMode": "auto"
+    },
+    {
+      "id": "log_1789814029633_lebai",
+      "timestamp": "2026-09-19T10:33:49.633Z",
+      "dateStr": "2026-09-19",
+      "operatorName": "Sakshi",
+      "fileName": "emp_doc1.pdf",
+      "targetPath": "D:\\Scan\\emp_doc1.pdf",
+      "pageCount": 6,
+      "blanksRemoved": 2,
+      "saveMode": "auto"
+    },
+    {
+      "id": "log_1789813709270_pfykg",
+      "timestamp": "2026-09-19T10:28:29.270Z",
+      "dateStr": "2026-09-19",
+      "operatorName": "Operator 1",
+      "fileName": "emp_record_M_0_0_19-09-26.pdf",
+      "targetPath": "D:\\RAILWAY\\Employee\\2026\\Sep\\19\\emp_record_M_0_0_19-09-26.pdf",
+      "pageCount": 106,
+      "blanksRemoved": 0,
+      "saveMode": "auto"
+    }
+  ],
+  "dailyStats": {
+    "2026-09-19": {
+      "dateStr": "2026-09-19",
+      "totalFiles": 3,
+      "totalPages": 170,
+      "totalBlanks": 2,
+      "operators": {
+        "Sakshi": {
+          "files": 1,
+          "pages": 6,
+          "blanks": 2
+        },
+        "Operator 1": {
+          "files": 2,
+          "pages": 164,
+          "blanks": 0
+        }
+      }
+    }
+  }
+}

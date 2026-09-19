@@ -69,6 +69,29 @@
     </nav>
 
     <div style="display: flex; align-items: center; gap: 0.65rem;">
+      <!-- OPERATOR SELECTION & LIVE COUNTER BADGE -->
+      <div class="operator-badge-container" style="display: flex; align-items: center; background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 3px 8px; color: #ffffff;">
+        <span style="font-size: 0.8rem; font-weight: 700; margin-right: 4px;" title="Active Operator">👤</span>
+        <select id="operator-select" class="operator-select-dropdown" onchange="handleOperatorChange(this.value)" style="background: transparent; color: #ffffff; border: none; font-size: 0.82rem; font-weight: 700; outline: none; cursor: pointer; padding-right: 4px;">
+          <option value="Operator 1" style="color: #0f172a;">Operator 1</option>
+          <option value="Operator 2" style="color: #0f172a;">Operator 2</option>
+          <option value="Operator 3" style="color: #0f172a;">Operator 3</option>
+          <option value="+new" style="color: #10b981; font-weight: 800;">➕ New Operator...</option>
+        </select>
+        
+        <div class="operator-counter-pill" onclick="openOperatorStatsModal()" title="Click to view detailed Operator Analytics & Processing Reports" style="display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.9); padding: 3px 10px; border-radius: 6px; cursor: pointer; margin-left: 6px; font-size: 0.78rem; font-weight: 800; transition: transform 0.2s;">
+          <span>📊 Today:</span>
+          <span id="nav-operator-today-count" style="background: #ffffff; color: #065f46; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem;">0</span>
+          <span style="opacity: 0.7;">|</span>
+          <span style="opacity: 0.9;">Total:</span>
+          <span id="nav-total-processed-count" style="background: rgba(255,255,255,0.25); color: #ffffff; padding: 1px 5px; border-radius: 4px; font-size: 0.78rem;">0</span>
+        </div>
+      </div>
+
+      <button id="nav-stats-btn" class="btn btn-secondary" onclick="openOperatorStatsModal()" title="View Operator Analytics & File Count Logs">
+        📊 Stats & Logs
+      </button>
+
       <button id="nav-rename-btn" class="btn btn-amber" onclick="openSmartRenameModal()" style="display: none;" title="Open Folder Path & Record Renamer Form">
         🏷️ Path Form
       </button>
@@ -669,6 +692,155 @@
         <!-- Right Column: Single Main Renamer Card Slot -->
         <div class="zoom-split-renamer" id="modal-renamer-slot" style="overflow-y: auto;">
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPERATOR ANALYTICS & FILE PROCESSING AUDIT MODAL -->
+  <div id="operator-stats-modal" class="modal-backdrop">
+    <div class="modal-card modal-card-wide" style="max-width: 950px; width: 95%;">
+      <button class="modal-close-btn" onclick="closeModal('operator-stats-modal')">✕</button>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem; padding-right: 2rem;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          📊 Operator File Processing Audit & Date-Wise Metrics
+        </h2>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="btn btn-success btn-sm" onclick="exportOperatorCsvReport()" style="font-weight: 700; font-size: 0.8rem;">
+            📥 Export CSV Audit Report
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="resetTodayOperatorCountPrompt()" style="font-weight: 700; font-size: 0.8rem;">
+            🧹 Reset Today's Count
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Filter Bar -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.55rem 0.85rem; margin-bottom: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <span style="font-size: 0.82rem; font-weight: 800; color: #0f172a;">📅 Select Date:</span>
+          <input type="date" id="modal-date-picker-input" onchange="setModalDateFilter(this.value)" style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 3px 8px; font-size: 0.82rem; font-weight: 700; color: #0f172a; outline: none;">
+          <button class="btn btn-sm btn-secondary" onclick="setModalDatePreset('today')" style="font-weight: 700; font-size: 0.75rem; padding: 3px 8px;">Today</button>
+          <button class="btn btn-sm btn-secondary" onclick="setModalDatePreset('yesterday')" style="font-weight: 700; font-size: 0.75rem; padding: 3px 8px;">Yesterday</button>
+          <button class="btn btn-sm btn-secondary" onclick="setModalDatePreset('all')" style="font-weight: 700; font-size: 0.75rem; padding: 3px 8px;">All Dates (Lifetime)</button>
+        </div>
+        <div style="font-size: 0.8rem; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 20px; border: 1px solid #a7f3d0;" id="modal-active-date-label">
+          Showing: Today (2026-09-19)
+        </div>
+      </div>
+
+      <!-- Metric Cards Grid -->
+      <div class="stats-metric-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.1rem;">
+        <div class="stat-card" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.85rem; text-align: center;">
+          <div style="font-size: 0.75rem; color: #166534; font-weight: 700; text-transform: uppercase;" id="modal-card-op-title">Active Operator (Selected Date)</div>
+          <div id="modal-stat-op-today" style="font-size: 1.8rem; font-weight: 800; color: #15803d; margin: 4px 0;">0</div>
+          <div id="modal-stat-active-op-name" style="font-size: 0.72rem; color: #166534; font-weight: 600;">(Operator 1)</div>
+        </div>
+
+        <div class="stat-card" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 0.85rem; text-align: center;">
+          <div style="font-size: 0.75rem; color: #1e40af; font-weight: 700; text-transform: uppercase;">Total Files (Selected Date)</div>
+          <div id="modal-stat-total-files" style="font-size: 1.8rem; font-weight: 800; color: #1d4ed8; margin: 4px 0;">0</div>
+          <div style="font-size: 0.72rem; color: #1e40af; font-weight: 600;" id="modal-stat-total-sub">Saved Files</div>
+        </div>
+
+        <div class="stat-card" style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 0.85rem; text-align: center;">
+          <div style="font-size: 0.75rem; color: #92400e; font-weight: 700; text-transform: uppercase;">Blank Pages Removed</div>
+          <div id="modal-stat-blanks-removed" style="font-size: 1.8rem; font-weight: 800; color: #b45309; margin: 4px 0;">0</div>
+          <div style="font-size: 0.72rem; color: #92400e; font-weight: 600;">AI Blank Cleanup</div>
+        </div>
+
+        <div class="stat-card" style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 0.85rem; text-align: center;">
+          <div style="font-size: 0.75rem; color: #6b21a8; font-weight: 700; text-transform: uppercase;">Total Pages Cleaned</div>
+          <div id="modal-stat-pages-cleaned" style="font-size: 1.8rem; font-weight: 800; color: #7e22ce; margin: 4px 0;">0</div>
+          <div style="font-size: 0.72rem; color: #6b21a8; font-weight: 600;">Pages Retained</div>
+        </div>
+      </div>
+
+      <!-- Tab Switcher inside Modal -->
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; flex-wrap: wrap;">
+        <button id="tab-modal-leaderboard" class="btn btn-sm btn-primary" onclick="switchModalStatsTab('leaderboard')">👥 Operator Performance</button>
+        <button id="tab-modal-daily" class="btn btn-sm btn-secondary" onclick="switchModalStatsTab('daily')">📅 Date-Wise Work Summary</button>
+        <button id="tab-modal-logs" class="btn btn-sm btn-secondary" onclick="switchModalStatsTab('logs')">📜 Processed Files Activity Log</button>
+      </div>
+
+      <!-- Leaderboard Tab Content -->
+      <div id="modal-stats-leaderboard-view">
+        <div style="max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+            <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0;">
+              <tr>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569;">Operator Name</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569; text-align: center;">Files on Selected Date</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569; text-align: center;">Total Lifetime Files</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569; text-align: center;">Pages Cleaned</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569; text-align: center;">Blanks Removed</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569;">Last Activity</th>
+              </tr>
+            </thead>
+            <tbody id="operator-leaderboard-tbody">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Date-Wise Daily Report Tab Content -->
+      <div id="modal-stats-daily-view" style="display: none;">
+        <div style="max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+            <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0;">
+              <tr>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569;">Work Date</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569; text-align: center;">Total Files Saved</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569;">Active Operators Breakdown</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569; text-align: center;">Pages Cleaned</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569; text-align: center;">Blanks Removed</th>
+                <th style="padding: 8px 12px; font-weight: 700; color: #475569; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="operator-daily-tbody">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Logs Tab Content -->
+      <div id="modal-stats-logs-view" style="display: none;">
+        <div style="max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+            <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0;">
+              <tr>
+                <th style="padding: 8px 10px; font-weight: 700; color: #475569;">Time</th>
+                <th style="padding: 8px 10px; font-weight: 700; color: #475569;">Operator</th>
+                <th style="padding: 8px 10px; font-weight: 700; color: #475569;">Saved File</th>
+                <th style="padding: 8px 10px; font-weight: 700; color: #475569;">Target Directory Path</th>
+                <th style="padding: 8px 10px; font-weight: 700; color: #475569; text-align: center;">Pages / Blanks</th>
+              </tr>
+            </thead>
+            <tbody id="operator-logs-tbody">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW OPERATOR NAME PROMPT MODAL -->
+  <div id="new-operator-modal" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 420px;">
+      <button class="modal-close-btn" onclick="closeModal('new-operator-modal')">✕</button>
+      <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">
+        👤 Register New Operator
+      </h3>
+      <p style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-bottom: 0.85rem;">
+        Enter operator name or employee ID to track file processing performance:
+      </p>
+      <input type="text" id="new-operator-name-input" placeholder="e.g. Sakshi Tiwari or Emp #102" style="width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem;">
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="closeModal('new-operator-modal')">Cancel</button>
+        <button class="btn btn-success" onclick="saveNewOperatorFromModal()">Save & Activate Operator</button>
       </div>
     </div>
   </div>

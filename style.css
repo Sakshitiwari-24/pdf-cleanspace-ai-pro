@@ -1200,8 +1200,49 @@ body {
     min-height: 280px;
     height: 320px;
   }
-  .modal-card {
-    padding: 0.75rem !important;
-  }
+
+/* OPERATOR BADGE & LIVE COUNTER STYLES */
+.operator-badge-container {
+  transition: all 0.25 ease;
+  user-select: none;
 }
+.operator-badge-container:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.operator-counter-pill {
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+.operator-counter-pill:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.45);
+}
+
+.operator-counter-bump {
+  animation: counterBump 0.4s ease-out;
+}
+
+@keyframes counterBump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); color: #10b981; }
+  100% { transform: scale(1); }
+}
+
+#operator-leaderboard-tbody tr:nth-child(even),
+#operator-logs-tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+#operator-leaderboard-tbody tr:hover,
+#operator-logs-tbody tr:hover {
+  background: #f1f5f9;
+}
+
+#operator-leaderboard-tbody td,
+#operator-logs-tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
 
