@@ -42,69 +42,67 @@
 </head>
 <body>
 
-  <!-- Top Formal Executive Navigation Bar -->
+  <!-- Executive Obsidian Dark Header Navbar -->
   <header class="navbar">
     <div class="brand">
       <div class="brand-icon" title="PDF CleanSpace Pro Studio">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#ffffff" fill-opacity="0.25" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
           <path d="M14 2V8H20" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M9 15L11 17L15 13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <div class="brand-title">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
           <h1>PDF CleanSpace Pro</h1>
-          <span style="background: #10b981; color: #ffffff; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; text-transform: uppercase;">v22.0 Latest</span>
+          <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.4); font-size: 0.62rem; font-weight: 800; padding: 1px 5px; border-radius: 4px; text-transform: uppercase;">Enterprise</span>
         </div>
-        <p>Smart Blank Removal, Manual Re-Check & Folder Path Studio</p>
+        <p>AI Blank Removal & Operator Record Curation</p>
       </div>
     </div>
 
     <nav class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('single')">📄 Single PDF Inspector</button>
-      <button class="tab-btn" onclick="switchTab('batch')">📁 Batch Folder Cleaner</button>
-      <button class="tab-btn" onclick="switchTab('split')">✂️ Split PDF</button>
+      <button class="tab-btn active" onclick="switchTab('single')">📄 Document Inspector</button>
+      <button class="tab-btn" onclick="switchTab('split')">✂️ Visual Splitter</button>
       <button class="tab-btn" onclick="switchTab('viewer')">📖 PDF Reader</button>
     </nav>
 
-    <div style="display: flex; align-items: center; gap: 0.65rem;">
-      <!-- HIGH CONTRAST OPERATOR SELECTION & LIVE COUNTER BADGE -->
-      <div class="operator-badge-container" style="display: flex; align-items: center; background: #0f172a; border: 1.5px solid #1e293b; border-radius: 8px; padding: 4px 10px; color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-        <span style="font-size: 0.85rem; margin-right: 4px;" title="Active Operator">👤</span>
-        <select id="operator-select" class="operator-select-dropdown" onchange="handleOperatorChange(this.value)" style="background: #0f172a; color: #ffffff; border: none; font-size: 0.85rem; font-weight: 800; outline: none; cursor: pointer; padding-right: 6px;">
-          <option value="Operator 1" style="color: #ffffff; background: #0f172a;">Operator 1</option>
-          <option value="Operator 2" style="color: #ffffff; background: #0f172a;">Operator 2</option>
-          <option value="Operator 3" style="color: #ffffff; background: #0f172a;">Operator 3</option>
-          <option value="+new" style="color: #34d399; font-weight: 800; background: #0f172a;">➕ New Operator...</option>
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <!-- EXECUTIVE ACTIVE OPERATOR & COUNTER BADGE -->
+      <div class="operator-badge-container">
+        <span style="font-size: 0.8rem; opacity: 0.8;" title="Active Operator">👤</span>
+        <select id="operator-select" class="operator-select-dropdown" onchange="handleOperatorChange(this.value)">
+          <!-- Dynamically Populated with Real Operator Names -->
         </select>
         
-        <div class="operator-counter-pill" onclick="openOperatorStatsModal()" title="Click to view detailed Operator Analytics & Processing Reports" style="display: flex; align-items: center; gap: 6px; background: #10b981; color: #ffffff; padding: 3px 10px; border-radius: 6px; cursor: pointer; margin-left: 6px; font-size: 0.8rem; font-weight: 800; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
-          <span>📊 Today:</span>
-          <span id="nav-operator-today-count" style="background: #ffffff; color: #065f46; padding: 1px 7px; border-radius: 4px; font-size: 0.85rem; font-weight: 900;">0</span>
-          <span style="opacity: 0.7;">|</span>
+        <button class="btn btn-sm" onclick="openOperatorLoginModal()" style="background: rgba(255,255,255,0.12); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 800; margin-left: 2px;" title="Switch Operator Name">✏️ Switch</button>
+
+        <div class="operator-counter-pill" onclick="openOperatorStatsModal()" title="Click to view detailed Operator Analytics & Processing Reports">
+          <span>📊 Today Saved:</span>
+          <span id="nav-operator-today-count" style="background: #ffffff; color: #065f46; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: 900;">0</span>
+          <span style="opacity: 0.6;">|</span>
           <span style="opacity: 0.9;">Total:</span>
-          <span id="nav-total-processed-count" style="background: rgba(255,255,255,0.25); color: #ffffff; padding: 1px 5px; border-radius: 4px; font-size: 0.8rem; font-weight: 800;">0</span>
+          <span id="nav-total-processed-count" style="background: rgba(255,255,255,0.2); color: #ffffff; padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; font-weight: 800;">0</span>
         </div>
       </div>
 
-      <button id="nav-stats-btn" class="btn btn-secondary" onclick="openOperatorStatsModal()" title="View Operator Analytics & File Count Logs" style="font-weight: 700;">
-        📊 Stats & Logs
+      <button id="nav-stats-btn" class="btn btn-nav-dark" onclick="openOperatorStatsModal()" title="View Operator Analytics & File Count Logs">
+        📊 Audit Logs
       </button>
 
       <button id="nav-rename-btn" class="btn btn-amber" onclick="openSmartRenameModal()" style="display: none;" title="Open Folder Path & Record Renamer Form">
         🏷️ Path Form
       </button>
 
-      <button id="nav-back-btn" class="btn btn-secondary" onclick="resetToUploadView()" style="display: none;" title="Upload another PDF">
+      <button id="nav-back-btn" class="btn btn-nav-dark" onclick="resetToUploadView()" style="display: none;" title="Upload another PDF">
         🔙 Upload PDF
       </button>
 
-      <button id="pwa-install-btn" class="btn btn-primary" onclick="openInstallModal()">
+      <button id="pwa-install-btn" class="btn btn-primary" onclick="openInstallModal()" style="font-size: 0.76rem; padding: 0.35rem 0.7rem;">
         📲 Install App
       </button>
 
-      <button class="btn btn-secondary" onclick="openHelpModal()">
+      <button class="btn btn-nav-dark" onclick="openHelpModal()">
         ❓ Guide
       </button>
     </div>
@@ -429,34 +427,6 @@
           </main>
         </div>
 
-      </div>
-    </section>
-
-    <!-- BATCH DATASET CLEANER SECTION -->
-    <section id="batch-view" class="view-section">
-      <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-main);">
-        <h2 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.35rem; color: #0f172a;">
-          📁 Batch Dataset Folder Cleaner
-        </h2>
-        <p style="font-size: 0.85rem; color: #475569; font-weight: 600; margin-bottom: 1.25rem;">
-          Batch process multiple PDF files at once into Employee, Family, or Retired target directories on D:\Scan.
-        </p>
-
-        <div class="dropzone-card" onclick="document.getElementById('batch-file-input').click()" style="padding: 2rem 1.25rem;">
-          <input type="file" id="batch-file-input" class="file-input" accept=".pdf" multiple onchange="handleBatchSelect(event)">
-          <div class="dropzone-icon">📁</div>
-          <h3 class="dropzone-title" style="font-size: 1.2rem;">Select Multiple PDF Files for Batch Cleaning</h3>
-          <p class="dropzone-sub">Processes entire directory queues instantly with direct folder export</p>
-          <button class="btn btn-success" type="button">📂 Select Batch PDF Files</button>
-        </div>
-
-        <div id="batch-queue-container" style="margin-top: 1.25rem; display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a;" id="batch-queue-count">Queue (0 Files)</h3>
-            <button class="btn btn-success" onclick="runBatchProcessing()">⚡ Run Batch Cleaning</button>
-          </div>
-          <div id="batch-queue-list" class="batch-queue-list"></div>
-        </div>
       </div>
     </section>
 
@@ -877,6 +847,36 @@
       <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
         <button class="btn btn-secondary" onclick="closeModal('new-operator-modal')">Cancel</button>
         <button class="btn btn-success" onclick="saveNewOperatorFromModal()">Save & Activate Operator</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPERATOR SHIFT LOGIN MODAL -->
+  <div id="operator-login-modal" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 440px; text-align: center;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✍️ 👤</div>
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.35rem;">
+        Operator Login / Enter Name
+      </h3>
+      <p style="font-size: 0.82rem; color: #64748b; font-weight: 600; margin-bottom: 1rem; line-height: 1.4;">
+        Welcome! Please enter your name or Employee ID below to start your shift. Every PDF saved (including split parts) will be counted daily under your name.
+      </p>
+      
+      <div style="text-align: left; margin-bottom: 1rem;">
+        <label style="font-size: 0.8rem; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block;">✍️ Enter Your Name or Employee ID:</label>
+        <input type="text" id="login-operator-name-input" placeholder="e.g. Sakshi Tiwari or Emp #102" style="width: 100%; padding: 0.75rem 0.9rem; border: 2px solid #10b981; border-radius: 8px; font-size: 1rem; font-weight: 700; color: #0f172a; outline: none; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); margin-bottom: 0.85rem;" onkeypress="if(event.key==='Enter') confirmOperatorLogin()">
+
+        <div id="login-recent-operators-container" style="display: none;">
+          <label style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">OR Select Recent Operator:</label>
+          <div id="login-recent-pills" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="closeModal('operator-login-modal')">Cancel</button>
+        <button class="btn btn-success" onclick="confirmOperatorLogin()" style="font-weight: 800; padding: 0.65rem 1.2rem; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+          🚀 Start Session as Operator
+        </button>
       </div>
     </div>
   </div>

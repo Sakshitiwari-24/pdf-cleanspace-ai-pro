@@ -1,28 +1,59 @@
 {
-  "totalFilesProcessed": 3,
-  "totalPagesProcessed": 170,
-  "totalBlanksRemoved": 2,
+  "totalFilesProcessed": 5,
+  "totalPagesProcessed": 191,
+  "totalBlanksRemoved": 9,
   "operators": {
     "Operator 1": {
       "name": "Operator 1",
-      "filesProcessedToday": 2,
+      "filesProcessedToday": 0,
       "totalFilesProcessed": 2,
       "totalPagesProcessed": 164,
       "totalBlanksRemoved": 0,
       "lastActive": "2026-09-19T10:50:21.397Z",
-      "lastResetDate": "2026-09-19"
+      "lastResetDate": "2026-09-21"
     },
     "Sakshi": {
       "name": "Sakshi",
-      "filesProcessedToday": 1,
+      "filesProcessedToday": 0,
       "totalFilesProcessed": 1,
       "totalPagesProcessed": 6,
       "totalBlanksRemoved": 2,
       "lastActive": "2026-09-19T10:33:49.633Z",
-      "lastResetDate": "2026-09-19"
+      "lastResetDate": "2026-09-21"
+    },
+    "AMAN VERMA": {
+      "name": "AMAN VERMA",
+      "filesProcessedToday": 2,
+      "totalFilesProcessed": 2,
+      "totalPagesProcessed": 21,
+      "totalBlanksRemoved": 7,
+      "lastActive": "2026-09-21T11:59:46.455Z",
+      "lastResetDate": "2026-09-21"
     }
   },
   "logs": [
+    {
+      "id": "log_1789991986455_zp5bj",
+      "timestamp": "2026-09-21T11:59:46.455Z",
+      "dateStr": "2026-09-21",
+      "operatorName": "AMAN VERMA",
+      "fileName": "emp_record_M_0_0_21-09-26.pdf",
+      "targetPath": "D:\\RAILWAY\\Employee\\2026\\Sep\\21\\emp_record_M_0_0_21-09-26.pdf",
+      "pageCount": 6,
+      "blanksRemoved": 0,
+      "saveMode": "manual"
+    },
+    {
+      "id": "log_1789991959028_6rdxb",
+      "timestamp": "2026-09-21T11:59:19.028Z",
+      "dateStr": "2026-09-21",
+      "operatorName": "AMAN VERMA",
+      "fileName": "emp_record_M_0_0_21-09-26.pdf",
+      "targetPath": "D:\\RAILWAY\\Employee\\2026\\Sep\\21\\emp_record_M_0_0_21-09-26.pdf",
+      "pageCount": 15,
+      "blanksRemoved": 7,
+      "saveMode": "manual"
+    },
     {
       "id": "log_1789815021397_p4vv9",
       "timestamp": "2026-09-19T10:50:21.397Z",
@@ -58,21 +89,34 @@
     }
   ],
   "dailyStats": {
+    "2026-09-21": {
+      "dateStr": "2026-09-21",
+      "totalFiles": 2,
+      "totalPages": 21,
+      "totalBlanks": 7,
+      "operators": {
+        "AMAN VERMA": {
+          "files": 2,
+          "pages": 21,
+          "blanks": 7
+        }
+      }
+    },
     "2026-09-19": {
       "dateStr": "2026-09-19",
       "totalFiles": 3,
       "totalPages": 170,
       "totalBlanks": 2,
       "operators": {
-        "Sakshi": {
-          "files": 1,
-          "pages": 6,
-          "blanks": 2
-        },
         "Operator 1": {
           "files": 2,
           "pages": 164,
           "blanks": 0
+        },
+        "Sakshi": {
+          "files": 1,
+          "pages": 6,
+          "blanks": 2
         }
       }
     }

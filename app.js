@@ -91,7 +91,7 @@ function updateSplitButtonsUI() {
 }
 
 function switchTab(tabName) {
-  const views = ['single', 'batch', 'split', 'viewer'];
+  const views = ['single', 'split', 'viewer'];
   const tabBtns = document.querySelectorAll('.nav-tabs .tab-btn');
   
   views.forEach((v, idx) => {
@@ -1610,8 +1610,8 @@ async function exportCleanedPdf(saveMode = 'auto') {
 
     // Helper to remove saved part pages and move to next part
     const finalizePartSaved = (savedPath) => {
-      const retainedCount = pagesData ? pagesData.filter(p => !p.is_deleted).length : 1;
-      const blankCount = pagesData ? pagesData.filter(p => p.is_deleted).length : 0;
+      const retainedCount = pagesData ? pagesData.filter(p => !p.user_deleted).length : 1;
+      const blankCount = pagesData ? pagesData.filter(p => p.user_deleted).length : 0;
       logProcessedFileEvent(savedPath, retainedCount, blankCount, saveMode);
 
       if (isSplitRun) {
@@ -1673,8 +1673,8 @@ async function exportCleanedPdf(saveMode = 'auto') {
               targetPath: fullTargetPath,
               pdfBase64: base64Data,
               operatorName: activeOperatorName,
-              pageCount: pagesData ? pagesData.filter(p => !p.is_deleted).length : 1,
-              blanksRemoved: pagesData ? pagesData.filter(p => p.is_deleted).length : 0
+              pageCount: pagesData ? pagesData.filter(p => !p.user_deleted).length : 1,
+              blanksRemoved: pagesData ? pagesData.filter(p => p.user_deleted).length : 0
             })
           });
 
@@ -1931,13 +1931,79 @@ async function triggerPwaPrompt() {
 // 👤 OPERATOR TRACKING & FILE COUNTER SYSTEM
 // ==========================================
 
-let activeOperatorName = localStorage.getItem('pdf_active_operator') || 'Operator 1';
-let operatorList = JSON.parse(localStorage.getItem('pdf_operator_list') || '["Operator 1", "Operator 2", "Operator 3"]');
+let activeOperatorName = (localStorage.getItem('pdf_active_operator') || '').trim();
+let operatorList = (JSON.parse(localStorage.getItem('pdf_operator_list') || '[]'))
+  .filter(op => op && typeof op === 'string' && !/^Operator \d+$/i.test(op.trim()));
+
 let serverOperatorStats = null;
 let currentModalStatsTab = 'leaderboard';
 
 function initOperatorSystem() {
   renderOperatorSelectDropdown();
+  fetchOperatorStats();
+  if (!activeOperatorName) {
+    setTimeout(openOperatorLoginModal, 300);
+  }
+}
+
+function openOperatorLoginModal() {
+  const modal = document.getElementById('operator-login-modal');
+  const input = document.getElementById('login-operator-name-input');
+  const pillsContainer = document.getElementById('login-recent-operators-container');
+  const pillsEl = document.getElementById('login-recent-pills');
+
+  if (input) {
+    input.value = activeOperatorName || '';
+    setTimeout(() => input.focus(), 150);
+  }
+
+  if (pillsContainer && pillsEl) {
+    const validOperators = operatorList.filter(op => op && !/^Operator \d+$/i.test(op));
+    if (validOperators.length > 0) {
+      pillsContainer.style.display = 'block';
+      let html = '';
+      validOperators.forEach(op => {
+        const isSel = op === activeOperatorName;
+        html += `<button type="button" class="btn btn-sm" onclick="setLoginOperatorInput('${op.replace(/'/g, "\\'")}')" style="background: ${isSel ? '#10b981' : '#f1f5f9'}; color: ${isSel ? '#ffffff' : '#1e293b'}; border: 1.5px solid ${isSel ? '#059669' : '#cbd5e1'}; font-weight: 700; font-size: 0.8rem; border-radius: 6px; padding: 3px 10px; cursor: pointer;">👤 ${op}</button>`;
+      });
+      pillsEl.innerHTML = html;
+    } else {
+      pillsContainer.style.display = 'none';
+    }
+  }
+
+  if (modal) modal.classList.add('active');
+}
+
+function setLoginOperatorInput(opName) {
+  const input = document.getElementById('login-operator-name-input');
+  if (input) {
+    input.value = opName;
+    input.focus();
+  }
+}
+
+function confirmOperatorLogin() {
+  const input = document.getElementById('login-operator-name-input');
+  let chosenName = input ? input.value.trim() : '';
+
+  if (!chosenName) {
+    alert('Please enter your operator name or employee ID.');
+    if (input) input.focus();
+    return;
+  }
+
+  activeOperatorName = chosenName;
+  localStorage.setItem('pdf_active_operator', activeOperatorName);
+
+  if (!operatorList.includes(chosenName)) {
+    operatorList.push(chosenName);
+    localStorage.setItem('pdf_operator_list', JSON.stringify(operatorList));
+  }
+
+  closeModal('operator-login-modal');
+  renderOperatorSelectDropdown();
+  updateNavbarCounterUI();
   fetchOperatorStats();
 }
 
@@ -1945,26 +2011,34 @@ function renderOperatorSelectDropdown() {
   const select = document.getElementById('operator-select');
   if (!select) return;
 
-  const uniqueList = Array.from(new Set(operatorList.concat(['Operator 1', 'Operator 2', 'Operator 3'])));
-  operatorList = uniqueList;
+  const validList = operatorList.filter(op => op && !/^Operator \d+$/i.test(op));
+  if (activeOperatorName && !validList.includes(activeOperatorName)) {
+    validList.unshift(activeOperatorName);
+  }
+
+  operatorList = Array.from(new Set(validList));
   localStorage.setItem('pdf_operator_list', JSON.stringify(operatorList));
 
   let html = '';
-  uniqueList.forEach(op => {
-    const isSel = op === activeOperatorName ? 'selected' : '';
-    html += `<option value="${op}" ${isSel} style="color: #0f172a;">👤 ${op}</option>`;
-  });
-  html += `<option value="+new" style="color: #10b981; font-weight: 800;">➕ New Operator...</option>`;
+  if (operatorList.length === 0) {
+    html = `<option value="" disabled selected style="color: #94a3b8; background: #0f172a;">(No Operator Set)</option>`;
+  } else {
+    operatorList.forEach(op => {
+      const isSel = op === activeOperatorName ? 'selected' : '';
+      html += `<option value="${op.replace(/"/g, '&quot;')}" ${isSel} style="color: #ffffff; background: #0f172a;">👤 ${op}</option>`;
+    });
+  }
+  html += `<option value="+new" style="color: #34d399; font-weight: 800; background: #0f172a;">✍️ + Enter New Name...</option>`;
   select.innerHTML = html;
-  select.value = activeOperatorName;
+
+  if (activeOperatorName) {
+    select.value = activeOperatorName;
+  }
 }
 
 function handleOperatorChange(value) {
   if (value === '+new') {
-    const modal = document.getElementById('new-operator-modal');
-    if (modal) modal.classList.add('active');
-    const select = document.getElementById('operator-select');
-    if (select) select.value = activeOperatorName;
+    openOperatorLoginModal();
     return;
   }
 
@@ -2057,7 +2131,7 @@ function updateNavbarCounterUI() {
 async function logProcessedFileEvent(targetPath, pageCount = 1, blanksRemoved = 0, saveMode = 'auto') {
   const payload = {
     operatorName: activeOperatorName,
-    fileName: exportName || (targetPath ? targetPath.split(/[/\\]/).pop() : 'document.pdf'),
+    fileName: (targetPath ? targetPath.split(/[/\\]/).pop() : 'document.pdf'),
     targetPath: targetPath || '',
     pageCount: parseInt(pageCount || 1, 10),
     blanksRemoved: parseInt(blanksRemoved || 0, 10),
@@ -2394,8 +2468,13 @@ function exportOperatorCsvReport() {
     logs = JSON.parse(localStorage.getItem('pdf_local_saved_logs') || '[]');
   }
 
+  if (selectedStatsDateFilter && selectedStatsDateFilter !== 'all') {
+    logs = logs.filter(l => (l.dateStr || (l.timestamp ? l.timestamp.split('T')[0] : '')) === selectedStatsDateFilter);
+  }
+
   if (logs.length === 0) {
-    alert('No processing logs available to export.');
+    const dateLabel = selectedStatsDateFilter === 'all' ? 'All Dates' : formatDateDMY(selectedStatsDateFilter);
+    alert(`No processing logs available to export for date '${dateLabel}'.`);
     return;
   }
 
@@ -2414,7 +2493,8 @@ function exportOperatorCsvReport() {
   });
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const filename = `operator_processing_report_${formatDateDMY(new Date().toISOString().split('T')[0])}.csv`;
+  const dateSuffix = selectedStatsDateFilter === 'all' ? 'lifetime' : formatDateDMY(selectedStatsDateFilter);
+  const filename = `operator_processing_report_${dateSuffix}.csv`;
   downloadBlob(blob, filename);
 }
 
