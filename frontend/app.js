@@ -36,7 +36,7 @@ function saveBaseDir(val) {
 }
 
 let extractedMetadata = {
-  category: "Employee", // Employee | Family | Retired
+  category: "Employee", // Employee | Family | Retired | Diet
   personName: "John Doe",
   gender: "Male",
   age: "",
@@ -455,24 +455,32 @@ function extractDocumentMetadata(text) {
   if (!text) return;
   const lowerText = text.toLowerCase();
 
-  // 1. CATEGORY CLASSIFIER (Employee / Family / Retired)
+  // 1. CATEGORY CLASSIFIER (Employee / Family / Retired / Diet)
   let employeeScore = 0;
   let familyScore = 0;
   let retiredScore = 0;
+  let dietScore = 0;
 
   const employeeKeywords = ['employee', 'payroll', 'salary', 'designation', 'department', 'employee id', 'hr', 'staff', 'joining date'];
   const familyKeywords = ['family', 'dependant', 'spouse', 'child', 'son', 'daughter', 'relative', 'father', 'mother', 'dependent'];
   const retiredKeywords = ['retired', 'pension', 'ppo', 'pensioner', 'superannuation', 'retiree', 'provident fund', 'epfo', 'gratuity'];
+  const dietKeywords = ['diet', 'dietary', 'food', 'nutrition', 'meal', 'dietitian', 'canteen', 'kitchen', 'breakfast', 'lunch', 'dinner', 'calories', 'ration', 'diet sheet', 'dietary slip'];
 
   employeeKeywords.forEach(kw => { if (lowerText.includes(kw)) employeeScore += 2; });
   familyKeywords.forEach(kw => { if (lowerText.includes(kw)) familyScore += 2; });
   retiredKeywords.forEach(kw => { if (lowerText.includes(kw)) retiredScore += 2; });
+  dietKeywords.forEach(kw => { if (lowerText.includes(kw)) dietScore += 2; });
 
   let detectedCategory = "Employee";
-  if (familyScore > employeeScore && familyScore > retiredScore) {
-    detectedCategory = "Family";
-  } else if (retiredScore > employeeScore && retiredScore > familyScore) {
-    detectedCategory = "Retired";
+  const catScores = [
+    { cat: "Diet", score: dietScore },
+    { cat: "Family", score: familyScore },
+    { cat: "Retired", score: retiredScore },
+    { cat: "Employee", score: employeeScore }
+  ];
+  catScores.sort((a, b) => b.score - a.score);
+  if (catScores[0].score > 0) {
+    detectedCategory = catScores[0].cat;
   } else {
     detectedCategory = "Employee";
   }
@@ -618,6 +626,13 @@ function updateAllPreviews() {
   let catVal = catSelect ? catSelect.value : (extractedMetadata.category || "Employee");
   extractedMetadata.category = catVal;
 
+  const modalRadios = document.getElementsByName("modal-cat-radio");
+  if (modalRadios && modalRadios.length) {
+    modalRadios.forEach(r => {
+      if (r.value === catVal) r.checked = true;
+    });
+  }
+
   let nameVal = sName ? sName.value : (extractedMetadata.personName || "");
   extractedMetadata.personName = nameVal;
 
@@ -689,6 +704,7 @@ function updateAllPreviews() {
     if (rawCat === "Employee") catBadge.innerText = "💼 EMPLOYEE";
     else if (rawCat === "Family") catBadge.innerText = "👨‍👩‍👧 FAMILY";
     else if (rawCat === "Retired") catBadge.innerText = "👵 RETIRED";
+    else if (rawCat === "Diet") catBadge.innerText = "🥗 DIET";
   }
 
   const subfolderBadge = document.getElementById("rename-subfolder-badge");
@@ -712,6 +728,10 @@ function updateAllPreviews() {
 }
 
 function updateSmartRenameUI() {
+  const catSelect = document.getElementById("rename-category");
+  if (catSelect && extractedMetadata.category) {
+    catSelect.value = extractedMetadata.category;
+  }
   updateAllPreviews();
 }
 
@@ -725,6 +745,8 @@ function generateTargetPathAndFilename() {
 
 function syncModalCategory(val) {
   extractedMetadata.category = val;
+  const catSelect = document.getElementById("rename-category");
+  if (catSelect) catSelect.value = val;
   updateAllPreviews();
 }
 

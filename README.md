@@ -41,7 +41,7 @@
 ### Folder Hierarchy (`\Category\Year\Month\DD\`)
 ```
 [Base Path] (Saved per device, e.g. D:\RAILWAY or C:\CompanyScans)
- └── 📁 Employee / Family / Retired
+ └── 📁 Employee / Family / Retired / Diet
       └── 📁 Year (e.g. 2020)
            └── 📁 Month (e.g. Feb)
                 └── 📁 Day (2 Digits, e.g. 06)

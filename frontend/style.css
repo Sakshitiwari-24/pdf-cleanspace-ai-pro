@@ -342,6 +342,11 @@ body {
   color: #334155;
   border: 1px solid #cbd5e1;
 }
+.cat-badge-diet {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
 
 /* Container & Layout */
 .container {

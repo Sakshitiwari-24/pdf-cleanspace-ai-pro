@@ -198,7 +198,7 @@
         </div>
 
         <h2 class="dropzone-title">Click or Drag & Drop PDF Document Here</h2>
-        <p class="dropzone-sub">Supports Employee files, Family records, Retired pensioner documents & dataset scans</p>
+        <p class="dropzone-sub">Supports Employee files, Family records, Retired pensioner documents, Diet records & dataset scans</p>
         <div style="display: flex; justify-content: center; gap: 0.85rem; flex-wrap: wrap; margin-top: 0.5rem;">
           <button class="btn btn-success" type="button" style="font-size: 0.9rem; padding: 0.65rem 1.6rem;">
             📂 Browse Computer Files
@@ -264,6 +264,7 @@
                     <option value="Employee" selected>💼 Employee</option>
                     <option value="Family">👨‍👩‍👧 Family</option>
                     <option value="Retired">👵 Retired (Pensioner)</option>
+                    <option value="Diet">🥗 Diet (Dietary)</option>
                   </select>
                 </div>
 
@@ -520,7 +521,7 @@
         <!-- Step 1: Category Selection -->
         <div>
           <label style="font-size: 0.78rem; font-weight: 800; color: #0f172a; display: block; margin-bottom: 0.3rem;">1. Select Category Folder:</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4rem;">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem;">
             <label style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 0.45rem; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer; font-size: 0.78rem; font-weight: 800; color: #0f172a;">
               <input type="radio" name="modal-cat-radio" value="Employee" onchange="syncModalCategory(this.value)"> 💼 Employee
             </label>
@@ -529,6 +530,9 @@
             </label>
             <label style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 0.45rem; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer; font-size: 0.78rem; font-weight: 800; color: #0f172a;">
               <input type="radio" name="modal-cat-radio" value="Retired" onchange="syncModalCategory(this.value)"> 👵 Retired
+            </label>
+            <label style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 0.45rem; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer; font-size: 0.78rem; font-weight: 800; color: #0f172a;">
+              <input type="radio" name="modal-cat-radio" value="Diet" onchange="syncModalCategory(this.value)"> 🥗 Diet
             </label>
           </div>
         </div>
